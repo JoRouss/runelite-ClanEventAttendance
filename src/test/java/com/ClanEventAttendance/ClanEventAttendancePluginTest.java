@@ -1,13 +1,13 @@
-package com.example;
+package com.ClanEventAttendance;
 
 import net.runelite.client.RuneLite;
 import net.runelite.client.externalplugins.ExternalPluginManager;
 
-public class ExamplePluginTest
+public class ClanEventAttendancePluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(ExamplePlugin.class);
+		ExternalPluginManager.loadBuiltin(ClanEventAttendancePlugin.class);
 		RuneLite.main(args);
 	}
 }

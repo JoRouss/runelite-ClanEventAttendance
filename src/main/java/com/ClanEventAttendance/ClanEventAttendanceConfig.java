@@ -1,11 +1,11 @@
-package com.example;
+package com.ClanEventAttendance;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
-@ConfigGroup("example")
-public interface ExampleConfig extends Config
+@ConfigGroup("ClanEventAttendance")
+public interface ClanEventAttendanceConfig extends Config
 {
 	@ConfigItem(
 		keyName = "greeting",
