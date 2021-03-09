@@ -30,10 +30,12 @@ package com.ClanEventAttendance;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
+import net.runelite.client.config.Range;
 
 @ConfigGroup("ClanEventAttendance")
 public interface ClanEventAttendanceConfig extends Config
 {
+	@Range(min = 1, max = 200)
 	@ConfigItem(keyName = "refreshRate", name = "Refresh rate", description = "The rate at which the text panel refreshes expressed in game ticks")
 	default int getRefreshRate()
 	{
