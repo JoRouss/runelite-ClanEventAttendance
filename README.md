@@ -7,7 +7,7 @@ You press Start at the benginning of the event. It then keeps track of who's aro
 
 At the end of the event, you press Stop and can copy/paste the attendancee list to Discord for example.
 
-![Discord report](/assets/ClanEventAttencance3.png "Discord report")
+![Discord report](/assets/ClanEventAttendance3.png "Discord report")
 
 Config
 ------
@@ -16,12 +16,12 @@ The config allows to:
 - set a time threshold to consider a member part of the event.
 - set the refresh rate of the plugin.
 
-![Config Page](/assets/ClanEventAttencance2.png "Config Page")
+![Config Page](/assets/ClanEventAttendance2.png "Config Page")
 
 Screenshots
 -----------
 
-![Fake event](/assets/ClanEventAttencance1.png "Fake event")
+![Fake event](/assets/ClanEventAttendance1.png "Fake event")
 
 License
 -------
