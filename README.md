@@ -7,7 +7,7 @@ You press Start at the benginning of the event. It then keeps track of who's aro
 
 At the end of the event, you press Stop and can copy/paste the attendance list to Discord for example.
 
-![Discord report](/assets/ClanEventAttendance3.png "Discord report")
+![Discord report](/assets/ClanEventAttendance6.png "Discord report")
 
 Config
 ------
