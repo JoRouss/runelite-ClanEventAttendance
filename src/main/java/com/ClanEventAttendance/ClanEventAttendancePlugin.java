@@ -107,7 +107,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		BufferedImage icon;
 		synchronized (ImageIO.class)
 		{
-			icon = ImageIO.read(getClass().getResourceAsStream("notes_icon.png"));
+			icon = ImageIO.read(getClass().getResourceAsStream("Clan_Chat.png"));
 		}
 
 		navButton = NavigationButton.builder()
