@@ -69,33 +69,10 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private final Map<String, MemberAttendance> attendanceBuffer = new TreeMap<>();
 
-	public void startEvent()
+	@Provides
+	ClanEventAttendanceConfig provideConfig(ConfigManager configManager)
 	{
-		eventStartedAt = client.getTickCount();
-		eventRunning = true;
-
-		for (final Player player : client.getPlayers())
-		{
-			// If they're the one that logged in
-			if (player != null && player.isFriendsChatMember())
-			{
-				addPlayer(player);
-				unpausePlayer(player.getName());
-			}
-		}
-	}
-
-	public void stopEvent()
-	{
-		for (String key : attendanceBuffer.keySet())
-		{
-			MemberAttendance ma = attendanceBuffer.get(key);
-			compileTicks(ma.member);
-		}
-
-		attendanceBuffer.clear();
-
-		eventRunning = false;
+		return configManager.getConfig(ClanEventAttendanceConfig.class);
 	}
 
 	@Override
@@ -130,6 +107,35 @@ public class ClanEventAttendancePlugin extends Plugin
 		eventRunning = false;
 	}
 
+	public void startEvent()
+	{
+		eventStartedAt = client.getTickCount();
+		eventRunning = true;
+
+		for (final Player player : client.getPlayers())
+		{
+			// If they're the one that logged in
+			if (player != null && player.isFriendsChatMember())
+			{
+				addPlayer(player);
+				unpausePlayer(player.getName());
+			}
+		}
+	}
+
+	public void stopEvent()
+	{
+		for (String key : attendanceBuffer.keySet())
+		{
+			MemberAttendance ma = attendanceBuffer.get(key);
+			compileTicks(ma.member.getName());
+		}
+
+		attendanceBuffer.clear();
+
+		eventRunning = false;
+	}
+
 	@Subscribe
 	public void onPlayerSpawned(PlayerSpawned event)
 	{
@@ -143,6 +149,21 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		addPlayer(player);
 		unpausePlayer(player.getName());
+	}
+
+	@Subscribe
+	public void onPlayerDespawned(PlayerDespawned event)
+	{
+		if (!eventRunning)
+			return;
+
+		final Player player = event.getPlayer();
+
+		if (!attendanceBuffer.containsKey(player.getName()))
+			return;
+
+		compileTicks(player.getName());
+		pausePlayer(player.getName());
 	}
 
 	private void addPlayer(Player player)
@@ -181,27 +202,12 @@ public class ClanEventAttendancePlugin extends Plugin
 		ma.lastSpawnTick = client.getTickCount();
 	}
 
-	@Subscribe
-	public void onPlayerDespawned(PlayerDespawned event)
-	{
-		if (!eventRunning)
-			return;
-
-		final Player player = event.getPlayer();
-
-		if (!attendanceBuffer.containsKey(player.getName()))
-			return;
-
-		compileTicks(player);
-		pausePlayer(player.getName());
-	}
-
-	private void compileTicks(Player player)
+	private void compileTicks(String playerName)
 	{
 		// Add elapsed tick to the total
-		MemberAttendance ma = attendanceBuffer.get(player.getName());
+		MemberAttendance ma = attendanceBuffer.get(playerName);
 
-		if (ma.isPaused == true)
+		if (ma.isPaused)
 			return;
 
 		ma.totalTicks += client.getTickCount() - ma.lastSpawnTick;
@@ -247,6 +253,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final String memberName = Text.toJagexName(member.getName());
 
+		compileTicks(memberName);
 		pausePlayer(memberName);
 	}
 
@@ -263,7 +270,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		for (String key : attendanceBuffer.keySet())
 		{
 			MemberAttendance ma = attendanceBuffer.get(key);
-			compileTicks(ma.member);
+			compileTicks(ma.member.getName());
 		}
 
 		// Update the text area with the collected data
@@ -287,7 +294,10 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		StringBuilder attendanceString = new StringBuilder();
 
-		attendanceString.append("Event duration: " + timeFormat((int)((client.getTickCount() - eventStartedAt) * 0.6f)) + "\n\n");
+		// ex: Event duration: 18:36
+		attendanceString.append("Event duration: ");
+		attendanceString.append(timeFormat((int)((client.getTickCount() - eventStartedAt) * 0.6f)));
+		attendanceString.append("\n\n");
 
 
 		if(activeSB.length() > 0)
@@ -302,7 +312,11 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		if(inactiveSB.length() > 0)
 		{
-			attendanceString.append("Below time threshold (" + timeFormat(config.getActiveThreshold()) + ")\n");
+			// ex: Below time threshold (03:00)
+			attendanceString.append("Below time threshold (");
+			attendanceString.append(timeFormat(config.getActiveThreshold()));
+			attendanceString.append(")\n");
+
 			attendanceString.append("----------------------------\n");
 			attendanceString.append(String.format("%-12s | %-5s | %-5s\n", "Name", "Time", "Late"));
 
@@ -314,21 +328,22 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private String rowFormat(MemberAttendance ma)
 	{
+		// ex: JoRouss      | 06:46 | 00:02
 		return String.format("%-12s | %-5s | %-5s\n", ma.member.getName(), timeFormat((int)(ma.totalTicks * 0.6f)), timeFormat((int)(ma.ticksLate * 0.6f)));
-		//return ma.member.getName() + " | " + timeFormat((int)(ma.totalTicks * 0.6f)) + " | " + timeFormat((int)(ma.ticksLate * 0.6f)) + "\n";
 	}
 
 	private String timeFormat(int totalSeconds)
 	{
-		long minute = TimeUnit.SECONDS.toMinutes(totalSeconds);// - (TimeUnit.SECONDS.toHours(totalSeconds) * 60);
+		long minute = TimeUnit.SECONDS.toMinutes(totalSeconds);
 		long second = TimeUnit.SECONDS.toSeconds(totalSeconds) - (TimeUnit.SECONDS.toMinutes(totalSeconds) * 60);
 
-		return String.format("%02d:%02d", minute, second);
-	}
+		if (minute > 99)
+		{
+			// ex: 183m
+			return String.format("%3dm", minute, second);
+		}
 
-	@Provides
-	ClanEventAttendanceConfig provideConfig(ConfigManager configManager)
-	{
-		return configManager.getConfig(ClanEventAttendanceConfig.class);
+		//ex: 18:26
+		return String.format("%02d:%02d", minute, second);
 	}
 }
