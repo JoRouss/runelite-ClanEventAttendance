@@ -3,7 +3,7 @@ Clan Event Attendance
 
 A plugin used to generate a list of clan members attending an event.
 
-You press Start at the benginning of the event. It then keeps track of who's around you during the event. It cumulates every member's attendancee time and tells you how much late at the event the clan member was.
+You press Start at the benginning of the event. It then keeps track of who's around you during the event. It cumulates every member's attendancee time and tells you how late to the event the clan member was.
 
 At the end of the event, you press Stop and can copy/paste the attendancee list to Discord for example.
 
