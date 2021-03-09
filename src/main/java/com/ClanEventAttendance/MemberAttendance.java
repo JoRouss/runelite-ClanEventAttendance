@@ -27,14 +27,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.ClanEventAttendance;
 
-import net.runelite.client.RuneLite;
-import net.runelite.client.externalplugins.ExternalPluginManager;
+import lombok.AllArgsConstructor;
+import net.runelite.api.Player;
 
-public class ClanEventAttendancePluginTest
+@AllArgsConstructor
+class MemberAttendance
 {
-	public static void main(String[] args) throws Exception
-	{
-		ExternalPluginManager.loadBuiltin(ClanEventAttendancePlugin.class);
-		RuneLite.main(args);
-	}
+    public Player member;
+    public Integer ticksLate;
+    public Integer lastSpawnTick;
+    public Integer totalTicks;
+    public boolean isPaused;
 }
