@@ -16,12 +16,12 @@ The config allows to:
 - set a time threshold to consider a member part of the event.
 - set the refresh rate of the plugin.
 
-![Config Page](/assets/ClanEventAttendance2.png "Config Page")
+![Config Page](/assets/ClanEventAttendance5.png "Config Page")
 
 Screenshots
 -----------
 
-![Fake event](/assets/ClanEventAttendance1.png "Fake event")
+![Fake event](/assets/ClanEventAttendance4.png "Fake event")
 
 License
 -------
