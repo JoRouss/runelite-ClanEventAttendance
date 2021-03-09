@@ -9,6 +9,9 @@ At the end of the event, you press Stop and can copy/paste the attendance list t
 
 ![Discord report](/assets/ClanEventAttendance6.png "Discord report")
 
+| NOTE: If your event takes place in multiple instances, you can have multiple members of your clan run the plugin and merge the resulting lists manually afterward |
+| --- |
+
 Config
 ------
 
