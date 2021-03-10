@@ -54,8 +54,7 @@ class ClanEventAttendancePanel extends PluginPanel
 
         JPanel startButtonContainer = new JPanel();
         startButtonContainer.setLayout(new BorderLayout());
-        //startButtonContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        startButtonContainer.setBorder(new EmptyBorder(10, 0, 10, 0));
+        startButtonContainer.setBorder(new EmptyBorder(0, 0, 10, 0));
 
         startButton.setText(plugin.eventRunning ? "Stop event" : "Start event");
 
@@ -64,11 +63,9 @@ class ClanEventAttendancePanel extends PluginPanel
         JPanel textAreaContainer = new JPanel();
         textAreaContainer.setLayout(new BorderLayout());
         textAreaContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        textAreaContainer.setBorder(new EmptyBorder(10, 10, 10, 10));
+        textAreaContainer.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-        //textArea.setTabSize(2);
         textArea.setLineWrap(true);
-        //textArea.setWrapStyleWord(true);
         textArea.setEditable(false);
         textArea.setOpaque(false);
         textArea.setFont(new Font("monospaced", Font.PLAIN, 12));
@@ -84,15 +81,23 @@ class ClanEventAttendancePanel extends PluginPanel
             public void actionPerformed(ActionEvent e) {
                 if (plugin.eventRunning)
                 {
-                    int dialogResult = JOptionPane.showConfirmDialog (null, "Are you sure you want to TERMINATE the event?","Warning", JOptionPane.YES_NO_OPTION);
-                    if(dialogResult == JOptionPane.YES_OPTION){
+                    final int result = JOptionPane.showOptionDialog(startButtonContainer,
+                            "Are you sure you want to TERMINATE the event?\nYou won't be able to restart it.",
+                            "Are you sure?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                            null, new String[]{"Yes", "No"}, "No");
+
+                    if(result == JOptionPane.YES_OPTION){
                         plugin.stopEvent();
                     }
                 }
                 else
                 {
-                    int dialogResult = JOptionPane.showConfirmDialog (null, "Are you sure you want to START a new event?","Warning", JOptionPane.YES_NO_OPTION);
-                    if(dialogResult == JOptionPane.YES_OPTION){
+                    final int result = JOptionPane.showOptionDialog(startButtonContainer,
+                            "Are you sure you want to START a new event?\nThis will delete current data.",
+                            "Are you sure?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
+                            null, new String[]{"Yes", "No"}, "No");
+
+                    if(result == JOptionPane.YES_OPTION){
                         plugin.startEvent();
                     }
                 }

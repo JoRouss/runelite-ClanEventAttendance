@@ -83,6 +83,16 @@ public class ClanEventAttendancePlugin extends Plugin
 		panel = injector.getInstance(ClanEventAttendancePanel.class);
 		panel.init(config, this);
 
+		/*
+		panel.setText("Event duration: 100:19\n" +
+				"\n" +
+				"Below time threshold (03:00)\n" +
+				"------------------------------\n" +
+				"Name         | Time   | Late  \n" +
+				"JoRouss      | 000:19 | 000:00\n" + // event time > 99 min
+				"Ross I Ftw   | 00:19  | 00:00 "); // event time < 99 min
+		*/
+
 		BufferedImage icon;
 		synchronized (ImageIO.class)
 		{
@@ -305,8 +315,8 @@ public class ClanEventAttendancePlugin extends Plugin
 		if(activeSB.length() > 0)
 		{
 			attendanceString.append("Part of the event\n");
-			attendanceString.append("----------------------------\n");
-			attendanceString.append(String.format("%-12s | %-5s | %-5s\n", "Name", "Time", "Late"));
+			attendanceString.append("------------------------------\n");
+			attendanceString.append(String.format("%-12s | %-6s | %-6s\n", "Name", "Time", "Late"));
 
 			attendanceString.append(activeSB);
 			attendanceString.append("\n");
@@ -319,8 +329,8 @@ public class ClanEventAttendancePlugin extends Plugin
 			attendanceString.append(timeFormat(config.getActiveThreshold()));
 			attendanceString.append(")\n");
 
-			attendanceString.append("----------------------------\n");
-			attendanceString.append(String.format("%-12s | %-5s | %-5s\n", "Name", "Time", "Late"));
+			attendanceString.append("------------------------------\n");
+			attendanceString.append(String.format("%-12s | %-6s | %-6s\n", "Name", "Time", "Late"));
 
 			attendanceString.append(inactiveSB);
 		}
@@ -330,8 +340,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private String rowFormat(MemberAttendance ma)
 	{
-		// ex: JoRouss      | 06:46 | 00:02
-		return String.format("%-12s | %-5s | %-5s\n", ma.member.getName(), timeFormat((int)(ma.totalTicks * 0.6f)), timeFormat((int)(ma.ticksLate * 0.6f)));
+		// ex: JoRouss      | 06:46  | 00:02
+		return String.format("%-12s | %-6s | %-6s\n", ma.member.getName(), timeFormat((int)(ma.totalTicks * 0.6f)), timeFormat((int)(ma.ticksLate * 0.6f)));
 	}
 
 	private String timeFormat(int totalSeconds)
@@ -341,8 +351,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		if (minute > 99)
 		{
-			// ex: 183m
-			return String.format("%3dm", minute, second);
+			//ex: 118:26
+			return String.format("%03d:%02d", minute, second);
 		}
 
 		//ex: 18:26
