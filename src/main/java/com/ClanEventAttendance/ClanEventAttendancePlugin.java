@@ -49,8 +49,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @PluginDescriptor(
 	name = "Clan Event Attendance",
-	description = "Get a list of clan event attendance",
-	tags = {"clan", "event", "attendance"}
+	description = "Track clan event attendance and time spent at the event",
+	tags = {"clan", "event", "attendance", "time"}
 )
 public class ClanEventAttendancePlugin extends Plugin
 {
