@@ -38,6 +38,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import sun.tools.jconsole.JConsole;
 
 import javax.imageio.ImageIO;
 
@@ -107,6 +108,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
+		attendanceBuffer.clear();
 		eventRunning = false;
 	}
 
@@ -115,14 +117,18 @@ public class ClanEventAttendancePlugin extends Plugin
 	{
 		clientToolbar.removeNavigation(navButton);
 
+		attendanceBuffer.clear();
 		eventRunning = false;
 	}
 
 	public void startEvent()
 	{
+		//log.info("Event started");
+
 		eventStartedAt = client.getTickCount();
 		eventRunning = true;
 
+		// Add all members around myself
 		for (final Player player : client.getPlayers())
 		{
 			if (player != null && player.isFriendsChatMember())
@@ -135,10 +141,11 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	public void stopEvent()
 	{
+		//log.info("Event stopped");
+
 		for (String key : attendanceBuffer.keySet())
 		{
-			MemberAttendance ma = attendanceBuffer.get(key);
-			compileTicks(ma.member.getName());
+			compileTicks(key);
 		}
 
 		panel.setText(generateTextData(true));
@@ -225,9 +232,12 @@ public class ClanEventAttendancePlugin extends Plugin
 		ma.lastSpawnTick = client.getTickCount();
 	}
 
+	// Fires for every online member when I myself join a cc (including myself, after everyone else)
 	@Subscribe
 	public void onFriendsChatMemberJoined(FriendsChatMemberJoined event)
 	{
+		//log.info("onFriendsChatMemberJoined " + event.getMember().getName());
+
 		if (!eventRunning)
 			return;
 
@@ -239,7 +249,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final String memberName = member.getName();
 
-		// Look at players around
 		for (final Player player : client.getPlayers())
 		{
 			// If they're the one that logged in
@@ -252,9 +261,12 @@ public class ClanEventAttendancePlugin extends Plugin
 		}
 	}
 
+	// Does not fire at all when I myself leave a cc
 	@Subscribe
 	public void onFriendsChatMemberLeft(FriendsChatMemberLeft event)
 	{
+		//log.info("onFriendsChatMemberLeft " + event.getMember().getName());
+
 		if (!eventRunning)
 			return;
 
@@ -264,12 +276,30 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (member.getWorld() != client.getWorld())
 			return;
 
-		// TODO pause everyone if I leave the cc
-
 		final String memberName = member.getName();
 
 		compileTicks(memberName);
 		pausePlayer(memberName);
+	}
+
+	@Subscribe
+	public void onFriendsChatChanged(FriendsChatChanged event)
+	{
+		//log.info("onFriendsChatChanged" + event.isJoined());
+
+		if (!eventRunning)
+			return;
+
+		//If I'm joining a cc, skip this
+		if (event.isJoined())
+			return;
+
+		// Pause everyone
+		for (String key : attendanceBuffer.keySet())
+		{
+			compileTicks(key);
+			pausePlayer(key);
+		}
 	}
 
 	@Subscribe
@@ -284,8 +314,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		for (String key : attendanceBuffer.keySet())
 		{
-			MemberAttendance ma = attendanceBuffer.get(key);
-			compileTicks(ma.member.getName());
+			compileTicks(key);
 		}
 
 		// Update the text area with the collected data
