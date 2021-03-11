@@ -48,13 +48,19 @@ public interface ClanEventAttendanceConfig extends Config
 		return 60 * 5;
 	}
 
-	@ConfigItem(keyName = "discordMarkdown", name = "Discord markdown", description = "Surrounds the final list with multiline code blocks markdown for better Discord display", position = 3)
+	@ConfigItem(keyName = "lateThreshold", name = "Late Threshold", description = "The required time for a member to be consider late expressed in seconds", position = 3)
+	default int getLateThreshold()
+	{
+		return 5;
+	}
+
+	@ConfigItem(keyName = "discordMarkdown", name = "Discord markdown", description = "Surrounds the final list with multiline code blocks markdown for better Discord display", position = 4)
 	default boolean getDiscordMarkdown()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "textPrefix", name = "Text prefix", description = "This text block will be added as a prefix to the final result", position = 4)
+	@ConfigItem(keyName = "textPrefix", name = "Text prefix", description = "This text block will be added as a prefix to the final result", position = 5)
 	default String getTextPrefix()
 	{
 		return "Event name: \nHosted by:";

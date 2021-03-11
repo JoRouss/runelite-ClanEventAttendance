@@ -299,7 +299,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		{
 			MemberAttendance ma = attendanceBuffer.get(key);
 
-			if ((int)(ma.totalTicks * 0.6f) < config.getActiveThreshold())
+			if (ticksToSeconds(ma.totalTicks) < config.getActiveThreshold())
 				inactiveSB.append(rowFormat(ma));
 			else
 				activeSB.append(rowFormat(ma));
@@ -315,7 +315,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		// ex: Event duration: 18:36
 		attendanceString.append("Event duration: ");
-		attendanceString.append(timeFormat((int)((client.getTickCount() - eventStartedAt) * 0.6f)));
+		attendanceString.append(timeFormat(ticksToSeconds(client.getTickCount() - eventStartedAt)));
 		attendanceString.append("\n\n");
 
 		if (finalDisplay && config.getDiscordMarkdown())
@@ -352,8 +352,9 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private String rowFormat(MemberAttendance ma)
 	{
-		// ex: JoRouss      | 06:46  | 00:02
-		return String.format("%-12s | %-6s | %-6s\n", ma.member.getName(), timeFormat((int)(ma.totalTicks * 0.6f)), timeFormat((int)(ma.ticksLate * 0.6f)));
+		// ex: JoRouss      | 06:46  | 01:07
+		// ex: SomeDude     | 236:46 | -
+		return String.format("%-12s | %-6s | %-6s\n", ma.member.getName(), timeFormat(ticksToSeconds(ma.totalTicks)), ticksToSeconds(ma.ticksLate) > config.getLateThreshold() ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-");
 	}
 
 	private String timeFormat(int totalSeconds)
@@ -369,5 +370,10 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		//ex: 18:26
 		return String.format("%02d:%02d", minute, second);
+	}
+
+	private int ticksToSeconds(int ticks)
+	{
+		return (int)(ticks * 0.6f);
 	}
 }
