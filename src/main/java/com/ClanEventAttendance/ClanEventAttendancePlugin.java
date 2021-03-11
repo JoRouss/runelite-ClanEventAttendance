@@ -359,11 +359,14 @@ public class ClanEventAttendancePlugin extends Plugin
 			attendanceString.append(String.format("%-12s | %-6s | %-6s\n", "Name", "Time", "Late"));
 
 			attendanceString.append(activeSB);
-			attendanceString.append("\n");
 		}
 
 		if(inactiveSB.length() > 0)
 		{
+			// Add spacing with previous list if any
+			if (activeSB.length() > 0)
+				attendanceString.append("\n");
+
 			// ex: Below time threshold (03:00)
 			attendanceString.append("Below time threshold (");
 			attendanceString.append(timeFormat(config.getActiveThreshold()));
