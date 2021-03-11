@@ -143,8 +143,9 @@ public class ClanEventAttendancePlugin extends Plugin
 			compileTicks(ma.member.getName());
 		}
 
-		attendanceBuffer.clear();
+		panel.setText(convertToText(true));
 
+		attendanceBuffer.clear();
 		eventRunning = false;
 	}
 
@@ -286,10 +287,10 @@ public class ClanEventAttendancePlugin extends Plugin
 		}
 
 		// Update the text area with the collected data
-		panel.setText(convertToText());
+		panel.setText(convertToText(false));
 	}
 
-	private String convertToText()
+	private String convertToText(boolean finalDisplay)
 	{
 		StringBuilder activeSB = new StringBuilder();
 		StringBuilder inactiveSB = new StringBuilder();
@@ -306,11 +307,19 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		StringBuilder attendanceString = new StringBuilder();
 
+		if (finalDisplay)
+		{
+			attendanceString.append(config.getTextPrefix());
+			attendanceString.append("\n");
+		}
+
 		// ex: Event duration: 18:36
 		attendanceString.append("Event duration: ");
 		attendanceString.append(timeFormat((int)((client.getTickCount() - eventStartedAt) * 0.6f)));
 		attendanceString.append("\n\n");
 
+		if (finalDisplay && config.getDiscordMarkdown())
+			attendanceString.append("```\n");
 
 		if(activeSB.length() > 0)
 		{
@@ -334,6 +343,9 @@ public class ClanEventAttendancePlugin extends Plugin
 
 			attendanceString.append(inactiveSB);
 		}
+
+		if (finalDisplay && config.getDiscordMarkdown())
+			attendanceString.append("```");
 
 		return attendanceString.toString();
 	}
