@@ -38,7 +38,6 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
-import net.runelite.client.util.Text;
 
 import javax.imageio.ImageIO;
 
@@ -86,11 +85,11 @@ public class ClanEventAttendancePlugin extends Plugin
 		/*
 		panel.setText("Event duration: 100:19\n" +
 				"\n" +
-				"Below time threshold (03:00)\n" +
+				"Below time threshold (03:00)  \n" +
 				"------------------------------\n" +
 				"Name         | Time   | Late  \n" +
-				"JoRouss      | 000:19 | 000:00\n" + // event time > 99 min
-				"Ross I Ftw   | 00:19  | 00:00 "); // event time < 99 min
+				"JoRouss      | 000:19 | 000:00\n" +
+				"Ross I Ftw   | 00:19  | -     \n");
 		*/
 
 		BufferedImage icon;
@@ -126,7 +125,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		for (final Player player : client.getPlayers())
 		{
-			// If they're the one that logged in
 			if (player != null && player.isFriendsChatMember())
 			{
 				addPlayer(player);
@@ -143,7 +141,7 @@ public class ClanEventAttendancePlugin extends Plugin
 			compileTicks(ma.member.getName());
 		}
 
-		panel.setText(convertToText(true));
+		panel.setText(generateTextData(true));
 
 		attendanceBuffer.clear();
 		eventRunning = false;
@@ -235,16 +233,17 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final FriendsChatMember member = event.getMember();
 
+		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
 			return;
 
-		final String memberName = Text.toJagexName(member.getName());
+		final String memberName = member.getName();
 
 		// Look at players around
 		for (final Player player : client.getPlayers())
 		{
 			// If they're the one that logged in
-			if (player != null && memberName.equals(Text.toJagexName(player.getName())))
+			if (player != null && memberName.equals(player.getName()))
 			{
 				addPlayer(player);
 				unpausePlayer(player.getName());
@@ -261,10 +260,13 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final FriendsChatMember member = event.getMember();
 
+		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
 			return;
 
-		final String memberName = Text.toJagexName(member.getName());
+		// TODO pause everyone if I leave the cc
+
+		final String memberName = member.getName();
 
 		compileTicks(memberName);
 		pausePlayer(memberName);
@@ -287,22 +289,23 @@ public class ClanEventAttendancePlugin extends Plugin
 		}
 
 		// Update the text area with the collected data
-		panel.setText(convertToText(false));
+		panel.setText(generateTextData(false));
 	}
 
-	private String convertToText(boolean finalDisplay)
+	private String generateTextData(boolean finalDisplay)
 	{
 		StringBuilder activeSB = new StringBuilder();
 		StringBuilder inactiveSB = new StringBuilder();
 
+		// Split the members into 2 lists
 		for (String key : attendanceBuffer.keySet())
 		{
 			MemberAttendance ma = attendanceBuffer.get(key);
 
 			if (ticksToSeconds(ma.totalTicks) < config.getActiveThreshold())
-				inactiveSB.append(rowFormat(ma));
+				inactiveSB.append(MemberAttendanceToString(ma));
 			else
-				activeSB.append(rowFormat(ma));
+				activeSB.append(MemberAttendanceToString(ma));
 		}
 
 		StringBuilder attendanceString = new StringBuilder();
@@ -350,11 +353,16 @@ public class ClanEventAttendancePlugin extends Plugin
 		return attendanceString.toString();
 	}
 
-	private String rowFormat(MemberAttendance ma)
+	private String MemberAttendanceToString(MemberAttendance ma)
 	{
-		// ex: JoRouss      | 06:46  | 01:07
-		// ex: SomeDude     | 236:46 | -
-		return String.format("%-12s | %-6s | %-6s\n", ma.member.getName(), timeFormat(ticksToSeconds(ma.totalTicks)), ticksToSeconds(ma.ticksLate) > config.getLateThreshold() ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-");
+		boolean isLate = ticksToSeconds(ma.ticksLate) > config.getLateThreshold();
+
+		// ex: JoRouss      | 06:46  | 01:07  // !isLate
+		// ex: SomeDude     | 236:46 | -      //  isLate
+		return String.format("%-12s | %-6s | %-6s\n",
+				ma.member.getName(),
+				timeFormat(ticksToSeconds(ma.totalTicks)),
+				isLate ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-");
 	}
 
 	private String timeFormat(int totalSeconds)
