@@ -176,7 +176,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final Player player = event.getPlayer();
 
-		if (!attendanceBuffer.containsKey(player.getName()))
+		if (!attendanceBuffer.containsKey(player.getName().toLowerCase()))
 			return;
 
 		compileTicks(player.getName());
@@ -185,23 +185,27 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private void addPlayer(Player player)
 	{
+		String playerName = player.getName().toLowerCase();
+
 		// if player is not in the attendance buffer, add it
-		if (!attendanceBuffer.containsKey(player.getName()))
+		if (!attendanceBuffer.containsKey(playerName))
 		{
 			MemberAttendance memberAttendance = new MemberAttendance(player,
 					client.getTickCount() - eventStartedAt, client.getTickCount(), 0, false);
-			attendanceBuffer.put(player.getName(), memberAttendance);
+			attendanceBuffer.put(playerName, memberAttendance);
 		}
 		// otherwise, just update his lastSpawnTick
 		else
 		{
-			MemberAttendance ma = attendanceBuffer.get(player.getName());
+			MemberAttendance ma = attendanceBuffer.get(playerName);
 			ma.lastSpawnTick = client.getTickCount();
 		}
 	}
 
 	private void pausePlayer(String playerName)
 	{
+		playerName = playerName.toLowerCase();
+
 		if (!attendanceBuffer.containsKey(playerName))
 			return;
 
@@ -211,6 +215,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private void unpausePlayer(String playerName)
 	{
+		playerName = playerName.toLowerCase();
+
 		if (!attendanceBuffer.containsKey(playerName))
 			return;
 
@@ -221,6 +227,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private void compileTicks(String playerName)
 	{
+		playerName = playerName.toLowerCase();
+
 		// Add elapsed tick to the total
 		MemberAttendance ma = attendanceBuffer.get(playerName);
 
