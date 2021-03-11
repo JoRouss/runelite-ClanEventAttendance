@@ -332,9 +332,9 @@ public class ClanEventAttendancePlugin extends Plugin
 			MemberAttendance ma = attendanceBuffer.get(key);
 
 			if (ticksToSeconds(ma.totalTicks) < config.getActiveThreshold())
-				inactiveSB.append(MemberAttendanceToString(ma));
+				inactiveSB.append(memberAttendanceToString(ma));
 			else
-				activeSB.append(MemberAttendanceToString(ma));
+				activeSB.append(memberAttendanceToString(ma));
 		}
 
 		StringBuilder attendanceString = new StringBuilder();
@@ -382,7 +382,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		return attendanceString.toString();
 	}
 
-	private String MemberAttendanceToString(MemberAttendance ma)
+	private String memberAttendanceToString(MemberAttendance ma)
 	{
 		boolean isLate = ticksToSeconds(ma.ticksLate) > config.getLateThreshold();
 
