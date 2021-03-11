@@ -38,7 +38,6 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
-import sun.tools.jconsole.JConsole;
 
 import javax.imageio.ImageIO;
 
