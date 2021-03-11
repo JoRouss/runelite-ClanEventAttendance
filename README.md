@@ -18,8 +18,10 @@ Config
 ------
 
 The config allows to:
-- set a time threshold to consider a member part of the event.
-- set the refresh rate of the plugin.
+- Set a time threshold to consider a member part of the event.
+- Set the refresh rate of the plugin panel.
+- Surround the final list with multiline code blocks markdown for better Discord display
+- Type a text block that will be added as a prefix to the final result
 
 ![Config Page](/assets/ClanEventAttendance5.png "Config Page")
 
