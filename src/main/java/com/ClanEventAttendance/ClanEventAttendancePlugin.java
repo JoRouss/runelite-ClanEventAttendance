@@ -38,6 +38,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.Text;
 
 import javax.imageio.ImageIO;
 
@@ -156,7 +157,7 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onPlayerSpawned(PlayerSpawned event)
 	{
-		//log.info("onPlayerSpawned " + event.getPlayer().getName());
+		//log.info("onPlayerSpawned: " + event.getPlayer().getName() + " isFriendsChatMember:" + event.getPlayer().isFriendsChatMember());
 
 		if (!eventRunning)
 			return;
@@ -191,7 +192,7 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onFriendsChatMemberJoined(FriendsChatMemberJoined event)
 	{
-		//log.info("onFriendsChatMemberJoined " + event.getMember().getName());
+		//log.info("onFriendsChatMemberJoined: " + Text.toJagexName(event.getMember().getName()) + " in world: " + event.getMember().getWorld());
 
 		if (!eventRunning)
 			return;
@@ -202,13 +203,14 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (member.getWorld() != client.getWorld())
 			return;
 
-		final String memberName = member.getName();
+		final String memberName = Text.toJagexName(member.getName());
 
 		for (final Player player : client.getPlayers())
 		{
 			// If they're the one that joined the cc
 			if (player != null && memberName.equals(player.getName()))
 			{
+				//log.info(player.getName() + " is around me");
 				addPlayer(player);
 				unpausePlayer(player.getName());
 				break;
@@ -220,7 +222,7 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onFriendsChatMemberLeft(FriendsChatMemberLeft event)
 	{
-		//log.info("onFriendsChatMemberLeft " + event.getMember().getName());
+		//log.info("onFriendsChatMemberLeft " + Text.toJagexName(event.getMember().getName()));
 
 		if (!eventRunning)
 			return;
@@ -231,7 +233,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (member.getWorld() != client.getWorld())
 			return;
 
-		final String memberName = member.getName();
+		final String memberName = Text.toJagexName(member.getName());
 
 		compileTicks(memberName);
 		pausePlayer(memberName);
