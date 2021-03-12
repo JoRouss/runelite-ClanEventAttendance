@@ -156,6 +156,8 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onPlayerSpawned(PlayerSpawned event)
 	{
+		//log.info("onPlayerSpawned " + event.getPlayer().getName());
+
 		if (!eventRunning)
 			return;
 
@@ -171,6 +173,8 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned event)
 	{
+		//log.info("onPlayerDespawned " + event.getPlayer().getName());
+
 		if (!eventRunning)
 			return;
 
@@ -181,6 +185,76 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		compileTicks(player.getName());
 		pausePlayer(player.getName());
+	}
+
+	// Fires for every online member when I myself join a cc (including myself, after everyone else)
+	@Subscribe
+	public void onFriendsChatMemberJoined(FriendsChatMemberJoined event)
+	{
+		//log.info("onFriendsChatMemberJoined " + event.getMember().getName());
+
+		if (!eventRunning)
+			return;
+
+		final FriendsChatMember member = event.getMember();
+
+		// Skip if he's not in my world
+		if (member.getWorld() != client.getWorld())
+			return;
+
+		final String memberName = member.getName();
+
+		for (final Player player : client.getPlayers())
+		{
+			// If they're the one that joined the cc
+			if (player != null && memberName.equals(player.getName()))
+			{
+				addPlayer(player);
+				unpausePlayer(player.getName());
+				break;
+			}
+		}
+	}
+
+	// Does not fire at all when I myself leave a cc
+	@Subscribe
+	public void onFriendsChatMemberLeft(FriendsChatMemberLeft event)
+	{
+		//log.info("onFriendsChatMemberLeft " + event.getMember().getName());
+
+		if (!eventRunning)
+			return;
+
+		final FriendsChatMember member = event.getMember();
+
+		// Skip if he's not in my world
+		if (member.getWorld() != client.getWorld())
+			return;
+
+		final String memberName = member.getName();
+
+		compileTicks(memberName);
+		pausePlayer(memberName);
+	}
+
+	@Subscribe
+	public void onFriendsChatChanged(FriendsChatChanged event)
+	{
+		//log.info("onFriendsChatChanged" + event.isJoined());
+
+		if (!eventRunning)
+			return;
+
+		//If I'm joining a cc, skip this
+		if (event.isJoined())
+			return;
+
+		// Pause everyone
+		for (String key : attendanceBuffer.keySet())
+		{
+			compileTicks(key);
+			pausePlayer(key);
+		}
 	}
 
 	private void addPlayer(Player player)
@@ -237,76 +311,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		ma.totalTicks += client.getTickCount() - ma.lastSpawnTick;
 		ma.lastSpawnTick = client.getTickCount();
-	}
-
-	// Fires for every online member when I myself join a cc (including myself, after everyone else)
-	@Subscribe
-	public void onFriendsChatMemberJoined(FriendsChatMemberJoined event)
-	{
-		//log.info("onFriendsChatMemberJoined " + event.getMember().getName());
-
-		if (!eventRunning)
-			return;
-
-		final FriendsChatMember member = event.getMember();
-
-		// Skip if he's not in my world
-		if (member.getWorld() != client.getWorld())
-			return;
-
-		final String memberName = member.getName();
-
-		for (final Player player : client.getPlayers())
-		{
-			// If they're the one that logged in
-			if (player != null && memberName.equals(player.getName()))
-			{
-				addPlayer(player);
-				unpausePlayer(player.getName());
-				break;
-			}
-		}
-	}
-
-	// Does not fire at all when I myself leave a cc
-	@Subscribe
-	public void onFriendsChatMemberLeft(FriendsChatMemberLeft event)
-	{
-		//log.info("onFriendsChatMemberLeft " + event.getMember().getName());
-
-		if (!eventRunning)
-			return;
-
-		final FriendsChatMember member = event.getMember();
-
-		// Skip if he's not in my world
-		if (member.getWorld() != client.getWorld())
-			return;
-
-		final String memberName = member.getName();
-
-		compileTicks(memberName);
-		pausePlayer(memberName);
-	}
-
-	@Subscribe
-	public void onFriendsChatChanged(FriendsChatChanged event)
-	{
-		//log.info("onFriendsChatChanged" + event.isJoined());
-
-		if (!eventRunning)
-			return;
-
-		//If I'm joining a cc, skip this
-		if (event.isJoined())
-			return;
-
-		// Pause everyone
-		for (String key : attendanceBuffer.keySet())
-		{
-			compileTicks(key);
-			pausePlayer(key);
-		}
 	}
 
 	@Subscribe
