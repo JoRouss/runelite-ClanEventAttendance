@@ -157,7 +157,7 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onPlayerSpawned(PlayerSpawned event)
 	{
-		//log.info("onPlayerSpawned: " + event.getPlayer().getName() + " isFriendsChatMember:" + event.getPlayer().isFriendsChatMember());
+		//log.info("onPlayerSpawned: " + Text.toJagexName(event.getPlayer().getName()) + " isFriendsChatMember:" + event.getPlayer().isFriendsChatMember());
 
 		if (!eventRunning)
 			return;
@@ -167,25 +167,28 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (!player.isFriendsChatMember())
 			return;
 
+		String playerName = Text.toJagexName(player.getName());
+
 		addPlayer(player);
-		unpausePlayer(player.getName());
+		unpausePlayer(playerName);
 	}
 
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned event)
 	{
-		//log.info("onPlayerDespawned " + event.getPlayer().getName());
+		//log.info("onPlayerDespawned " + Text.toJagexName(event.getPlayer().getName()));
 
 		if (!eventRunning)
 			return;
 
 		final Player player = event.getPlayer();
+		String playerName = Text.toJagexName(player.getName());
 
-		if (!attendanceBuffer.containsKey(player.getName().toLowerCase()))
+		if (!attendanceBuffer.containsKey(playerName.toLowerCase()))
 			return;
 
-		compileTicks(player.getName());
-		pausePlayer(player.getName());
+		compileTicks(playerName);
+		pausePlayer(playerName);
 	}
 
 	// Fires for every online member when I myself join a cc (including myself, after everyone else)
@@ -207,12 +210,16 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		for (final Player player : client.getPlayers())
 		{
+			if (player == null)
+				continue;
+
+			String playerName = Text.toJagexName(player.getName());
+
 			// If they're the one that joined the cc
-			if (player != null && memberName.equals(player.getName()))
+			if (memberName.equals(playerName))
 			{
-				//log.info(player.getName() + " is around me");
 				addPlayer(player);
-				unpausePlayer(player.getName());
+				unpausePlayer(playerName);
 				break;
 			}
 		}
@@ -261,7 +268,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private void addPlayer(Player player)
 	{
-		String playerName = player.getName().toLowerCase();
+		String playerName = Text.toJagexName(player.getName());
+		playerName = playerName.toLowerCase();
 
 		// if player is not in the attendance buffer, add it
 		if (!attendanceBuffer.containsKey(playerName))
@@ -405,7 +413,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		// ex: JoRouss      | 06:46  | 01:07  // !isLate
 		// ex: SomeDude     | 236:46 | -      //  isLate
 		return String.format("%-12s | %-6s | %-6s\n",
-				ma.member.getName(),
+				Text.toJagexName(ma.member.getName()),
 				timeFormat(ticksToSeconds(ma.totalTicks)),
 				isLate ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-");
 	}
