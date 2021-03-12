@@ -38,9 +38,8 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
-
-import javax.imageio.ImageIO;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -93,11 +92,7 @@ public class ClanEventAttendancePlugin extends Plugin
 				"Ross I Ftw   | 00:19  | -     \n");
 		*/
 
-		BufferedImage icon;
-		synchronized (ImageIO.class)
-		{
-			icon = ImageIO.read(getClass().getResourceAsStream("Clan_Chat.png"));
-		}
+		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "panel_icon.png");
 
 		navButton = NavigationButton.builder()
 				.tooltip("Clan Event Attendance")
