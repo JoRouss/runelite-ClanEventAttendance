@@ -30,7 +30,7 @@ Screenshots
 -----------
 
 ![Fake event](/assets/ClanEventAttendance4.png "Fake event")
-![Event1](/assets/ClanEventExample1.png "Event1")
+![Event1](/assets/ClanEventExample1.jpg "Event1")
 
 License
 -------
