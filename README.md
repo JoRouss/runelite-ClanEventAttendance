@@ -31,6 +31,7 @@ Screenshots
 
 ![Fake event](/assets/ClanEventAttendance4.png "Fake event")
 ![Event1](/assets/ClanEventExample1.jpg "Event1")
+![Event2](/assets/ClanEventExample2.jpg "Event2")
 
 License
 -------
