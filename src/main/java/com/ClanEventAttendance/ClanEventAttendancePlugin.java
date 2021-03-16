@@ -324,10 +324,6 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (!eventRunning)
 			return;
 
-		// Update every X ticks
-		if (client.getTickCount() % config.getRefreshRate() != 0)
-			return;
-
 		for (String key : attendanceBuffer.keySet())
 		{
 			compileTicks(key);
