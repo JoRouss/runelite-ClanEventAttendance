@@ -17,14 +17,13 @@ At the end of the event, you can copy/paste the attendance list to your clan's s
 Config
 ------
 
-The config allows to:
-- Set a time threshold to consider a member part of the event.
-- Set a time threshold to consider a member late at the event.
-- Set the refresh rate of the plugin panel.
+The config page allows to:
+- Set a time threshold to consider a member part of the event
+- Set a time threshold to consider a member late at the event
 - Surround the final list with multiline code blocks markdown for better Discord display
 - Type a text block that will be added as a prefix to the final result
 
-![Config Page](/assets/ClanEventAttendance5.png "Config Page")
+![Config Page](/assets/config.png "Config Page")
 
 Screenshots
 -----------
