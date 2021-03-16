@@ -34,6 +34,7 @@ import net.runelite.api.*;
 import net.runelite.api.events.*;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -120,6 +121,8 @@ public class ClanEventAttendancePlugin extends Plugin
 	{
 		//log.info("Event started");
 
+		attendanceBuffer.clear();
+
 		eventStartedAt = client.getTickCount();
 		eventRunning = true;
 
@@ -145,7 +148,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		panel.setText(generateTextData(true));
 
-		attendanceBuffer.clear();
 		eventRunning = false;
 	}
 
@@ -331,6 +333,15 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		// Update the text area with the collected data
 		panel.setText(generateTextData(false));
+	}
+
+	@Subscribe
+	public void onConfigChanged(ConfigChanged event)
+	{
+		if (!attendanceBuffer.isEmpty())
+		{
+			panel.setText(generateTextData(!eventRunning));
+		}
 	}
 
 	private String generateTextData(boolean finalDisplay)
