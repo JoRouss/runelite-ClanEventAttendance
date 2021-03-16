@@ -30,30 +30,44 @@ package com.ClanEventAttendance;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.Range;
+import net.runelite.client.config.ConfigSection;
 
 @ConfigGroup("ClanEventAttendance")
 public interface ClanEventAttendanceConfig extends Config
 {
-	@ConfigItem(keyName = "activeThreshold", name = "Active Threshold", description = "The required time for a member to be consider part of the event expressed in seconds", position = 2)
+	@ConfigSection(
+			name = "Event config",
+			description = "Event related configs",
+			position = 0
+	)
+	String eventConfigSection = "EventConfig";
+
+	@ConfigSection(
+			name = "Text formatting",
+			description = "How to format text after the event is stopped",
+			position = 1
+	)
+	String textFormattingSection = "TextFormatting";
+
+	@ConfigItem(keyName = "activeThreshold", name = "Active Threshold", description = "The required time for a member to be consider part of the event expressed in seconds", section=eventConfigSection,  position = 2)
 	default int getActiveThreshold()
 	{
 		return 60 * 5;
 	}
 
-	@ConfigItem(keyName = "lateThreshold", name = "Late Threshold", description = "The required time for a member to be consider late expressed in seconds", position = 3)
+	@ConfigItem(keyName = "lateThreshold", name = "Late Threshold", description = "The required time for a member to be consider late expressed in seconds", section=eventConfigSection, position = 3)
 	default int getLateThreshold()
 	{
 		return 5;
 	}
 
-	@ConfigItem(keyName = "discordMarkdown", name = "Discord markdown", description = "Surrounds the final list with multiline code blocks markdown for better Discord display", position = 4)
+	@ConfigItem(keyName = "discordMarkdown", name = "Discord markdown", description = "Surrounds the final list with multiline code blocks markdown for better Discord display", section=textFormattingSection, position = 4)
 	default boolean getDiscordMarkdown()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "textPrefix", name = "Text prefix", description = "This text block will be added as a prefix to the final result", position = 5)
+	@ConfigItem(keyName = "textPrefix", name = "Text prefix", description = "This text block will be added as a prefix to the final result", section=textFormattingSection, position = 5)
 	default String getTextPrefix()
 	{
 		return "Event name: \nHosted by:";
