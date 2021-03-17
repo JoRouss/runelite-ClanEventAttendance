@@ -37,5 +37,5 @@ class MemberAttendance
     public Integer ticksLate;
     public Integer tickActivityStarted;
     public Integer ticksTotal;
-    public boolean isActive;
+    public boolean isPresent;
 }

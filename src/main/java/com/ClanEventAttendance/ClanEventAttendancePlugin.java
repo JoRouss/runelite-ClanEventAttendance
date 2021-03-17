@@ -73,8 +73,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private final Map<String, MemberAttendance> attendanceBuffer = new TreeMap<>();
 
-	private String activeColorText;
-	private String inactiveColorText;
+	private String presentColorText;
+	private String absentColorText;
 	private final String defaultColorText = "#FFFFFF"; //white
 
 	@Provides
@@ -288,7 +288,7 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		MemberAttendance ma = attendanceBuffer.get(playerName);
-		ma.isActive = false;
+		ma.isPresent = false;
 	}
 
 	private void unpausePlayer(String playerName)
@@ -299,7 +299,7 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		MemberAttendance ma = attendanceBuffer.get(playerName);
-		ma.isActive = true;
+		ma.isPresent = true;
 		ma.tickActivityStarted = client.getTickCount();
 	}
 
@@ -310,7 +310,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		// Add elapsed tick to the total
 		MemberAttendance ma = attendanceBuffer.get(playerName);
 
-		if (!ma.isActive)
+		if (!ma.isPresent)
 			return;
 
 		ma.ticksTotal += client.getTickCount() - ma.tickActivityStarted;
@@ -335,8 +335,8 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		activeColorText = "#" + Integer.toHexString(config.getActiveColor().getRGB()).substring(2);
-		inactiveColorText = "#" + Integer.toHexString(config.getInactiveColor().getRGB()).substring(2);
+		presentColorText = "#" + Integer.toHexString(config.getPresentColor().getRGB()).substring(2);
+		absentColorText = "#" + Integer.toHexString(config.getAbsentColor().getRGB()).substring(2);
 
 		if (!attendanceBuffer.isEmpty())
 		{
@@ -426,7 +426,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		String lineColor = defaultColorText;
 
 		if(eventRunning)
-			lineColor = ma.isActive ? activeColorText : inactiveColorText;
+			lineColor = ma.isPresent ? presentColorText : absentColorText;
 
 		// ex: JoRouss      | 06:46  | 01:07  // !isLate
 		// ex: SomeDude     | 236:46 | -      //  isLate

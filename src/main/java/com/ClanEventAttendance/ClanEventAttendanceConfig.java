@@ -45,7 +45,7 @@ public interface ClanEventAttendanceConfig extends Config
 	String eventConfigSection = "EventConfig";
 
 	@ConfigSection(
-			name = "Text formatting",
+			name = "Text post-formatting",
 			description = "How to format text after the event is stopped",
 			position = 1
 	)
@@ -120,25 +120,25 @@ public interface ClanEventAttendanceConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "activeColor",
-			name = "Active color",
-			description = "The color used to display currently active members",
+			keyName = "presentColor",
+			name = "Present color",
+			description = "The color used to display currently present members",
 			section = panelConfigSection,
 			position = 6
 	)
-	default Color getActiveColor()
+	default Color getPresentColor()
 	{
 		return Color.green;
 	}
 
 	@ConfigItem(
-			keyName = "inactiveColor",
-			name = "Inactive color",
-			description = "The color used to display currently inactive members",
+			keyName = "absentColor",
+			name = "Absent color",
+			description = "The color used to display currently absent members",
 			section = panelConfigSection,
 			position = 7
 	)
-	default Color getInactiveColor()
+	default Color getAbsentColor()
 	{
 		return Color.red;
 	}
