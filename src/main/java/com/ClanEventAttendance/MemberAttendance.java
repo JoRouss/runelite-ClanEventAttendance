@@ -35,7 +35,7 @@ class MemberAttendance
 {
     public Player member;
     public Integer ticksLate;
-    public Integer lastSpawnTick;
-    public Integer totalTicks;
-    public boolean isPaused;
+    public Integer tickActivityStarted;
+    public Integer ticksTotal;
+    public boolean isActive;
 }

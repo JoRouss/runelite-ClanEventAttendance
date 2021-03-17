@@ -39,9 +39,11 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -71,6 +73,10 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private final Map<String, MemberAttendance> attendanceBuffer = new TreeMap<>();
 
+	private String activeColorText;
+	private String inactiveColorText;
+	private final String defaultColorText = "#FFFFFF"; //white
+
 	@Provides
 	ClanEventAttendanceConfig provideConfig(ConfigManager configManager)
 	{
@@ -81,17 +87,6 @@ public class ClanEventAttendancePlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		panel = injector.getInstance(ClanEventAttendancePanel.class);
-		panel.init(config, this);
-
-		/*
-		panel.setText("Event duration: 100:19\n" +
-				"\n" +
-				"Below time threshold (03:00)  \n" +
-				"------------------------------\n" +
-				"Name         | Time   | Late  \n" +
-				"JoRouss      | 000:19 | 000:00\n" +
-				"Ross I Ftw   | 00:19  | -     \n");
-		*/
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "panel_icon.png");
 
@@ -106,6 +101,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		attendanceBuffer.clear();
 		eventRunning = false;
+
+		panel.init(config, this);
 	}
 
 	@Override
@@ -135,6 +132,8 @@ public class ClanEventAttendancePlugin extends Plugin
 				unpausePlayer(player.getName());
 			}
 		}
+
+		panel.updatePanel(config, this);
 	}
 
 	public void stopEvent()
@@ -146,9 +145,10 @@ public class ClanEventAttendancePlugin extends Plugin
 			compileTicks(key);
 		}
 
-		panel.setText(generateTextData(true));
-
 		eventRunning = false;
+
+		panel.setText(generateTextData(true));
+		panel.updatePanel(config, this);
 	}
 
 	@Subscribe
@@ -272,14 +272,11 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (!attendanceBuffer.containsKey(playerName))
 		{
 			MemberAttendance memberAttendance = new MemberAttendance(player,
-					client.getTickCount() - eventStartedAt, client.getTickCount(), 0, false);
+					client.getTickCount() - eventStartedAt,
+					client.getTickCount(),
+					0,
+					false);
 			attendanceBuffer.put(playerName, memberAttendance);
-		}
-		// otherwise, just update his lastSpawnTick
-		else
-		{
-			MemberAttendance ma = attendanceBuffer.get(playerName);
-			ma.lastSpawnTick = client.getTickCount();
 		}
 	}
 
@@ -291,7 +288,7 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		MemberAttendance ma = attendanceBuffer.get(playerName);
-		ma.isPaused = true;
+		ma.isActive = false;
 	}
 
 	private void unpausePlayer(String playerName)
@@ -302,8 +299,8 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		MemberAttendance ma = attendanceBuffer.get(playerName);
-		ma.isPaused = false;
-		ma.lastSpawnTick = client.getTickCount();
+		ma.isActive = true;
+		ma.tickActivityStarted = client.getTickCount();
 	}
 
 	private void compileTicks(String playerName)
@@ -313,11 +310,11 @@ public class ClanEventAttendancePlugin extends Plugin
 		// Add elapsed tick to the total
 		MemberAttendance ma = attendanceBuffer.get(playerName);
 
-		if (ma.isPaused)
+		if (!ma.isActive)
 			return;
 
-		ma.totalTicks += client.getTickCount() - ma.lastSpawnTick;
-		ma.lastSpawnTick = client.getTickCount();
+		ma.ticksTotal += client.getTickCount() - ma.tickActivityStarted;
+		ma.tickActivityStarted = client.getTickCount();
 	}
 
 	@Subscribe
@@ -338,10 +335,15 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
+		activeColorText = "#" + Integer.toHexString(config.getActiveColor().getRGB()).substring(2);
+		inactiveColorText = "#" + Integer.toHexString(config.getInactiveColor().getRGB()).substring(2);
+
 		if (!attendanceBuffer.isEmpty())
 		{
 			panel.setText(generateTextData(!eventRunning));
 		}
+
+		panel.updatePanel(config, this);
 	}
 
 	private String generateTextData(boolean finalDisplay)
@@ -354,33 +356,34 @@ public class ClanEventAttendancePlugin extends Plugin
 		{
 			MemberAttendance ma = attendanceBuffer.get(key);
 
-			if (ticksToSeconds(ma.totalTicks) < config.getActiveThreshold())
+			if (ticksToSeconds(ma.ticksTotal) < config.getTimeThreshold())
 				inactiveSB.append(memberAttendanceToString(ma));
 			else
 				activeSB.append(memberAttendanceToString(ma));
 		}
 
 		StringBuilder attendanceString = new StringBuilder();
+		attendanceString.append("<html><body><pre>");
 
 		if (finalDisplay)
 		{
-			attendanceString.append(config.getTextPrefix());
-			attendanceString.append("\n");
+			attendanceString.append(config.getTextPrefix().replaceAll("(\r\n|\n\r|\r|\n)", "<br/>"));
+			attendanceString.append("<br/>");
 		}
 
 		// ex: Event duration: 18:36
 		attendanceString.append("Event duration: ");
 		attendanceString.append(timeFormat(ticksToSeconds(client.getTickCount() - eventStartedAt)));
-		attendanceString.append("\n\n");
+		attendanceString.append("<br/><br/>");
 
 		if (finalDisplay && config.getDiscordMarkdown())
-			attendanceString.append("```\n");
+			attendanceString.append("```<br/>");
 
 		if(activeSB.length() > 0)
 		{
-			attendanceString.append("Part of the event\n");
-			attendanceString.append("------------------------------\n");
-			attendanceString.append(String.format("%-12s | %-6s | %-6s\n", "Name", "Time", "Late"));
+			attendanceString.append("Part of the event<br/>");
+			attendanceString.append("------------------------------<br/>");
+			attendanceString.append(String.format("%-12s | %-6s | %-6s<br/>", "Name", "Time", "Late"));
 
 			attendanceString.append(activeSB);
 		}
@@ -389,15 +392,15 @@ public class ClanEventAttendancePlugin extends Plugin
 		{
 			// Add spacing with previous list if any
 			if (activeSB.length() > 0)
-				attendanceString.append("\n");
+				attendanceString.append("<br/>");
 
 			// ex: Below time threshold (03:00)
 			attendanceString.append("Below time threshold (");
-			attendanceString.append(timeFormat(config.getActiveThreshold()));
-			attendanceString.append(")\n");
+			attendanceString.append(timeFormat(config.getTimeThreshold()));
+			attendanceString.append(")<br/>");
 
-			attendanceString.append("------------------------------\n");
-			attendanceString.append(String.format("%-12s | %-6s | %-6s\n", "Name", "Time", "Late"));
+			attendanceString.append("------------------------------<br/>");
+			attendanceString.append(String.format("%-12s | %-6s | %-6s<br/>", "Name", "Time", "Late"));
 
 			attendanceString.append(inactiveSB);
 		}
@@ -405,19 +408,34 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (finalDisplay && config.getDiscordMarkdown())
 			attendanceString.append("```");
 
+		if (finalDisplay)
+		{
+			attendanceString.append("<br/>");
+			attendanceString.append("<br/>");
+			attendanceString.append(config.getTextSuffix().replaceAll("(\r\n|\n\r|\r|\n)", "<br/>"));
+		}
+
+		attendanceString.append("</pre></body></html>");
+
 		return attendanceString.toString();
 	}
 
 	private String memberAttendanceToString(MemberAttendance ma)
 	{
 		boolean isLate = ticksToSeconds(ma.ticksLate) > config.getLateThreshold();
+		String lineColor = defaultColorText;
+
+		if(eventRunning)
+			lineColor = ma.isActive ? activeColorText : inactiveColorText;
 
 		// ex: JoRouss      | 06:46  | 01:07  // !isLate
 		// ex: SomeDude     | 236:46 | -      //  isLate
-		return String.format("%-12s | %-6s | %-6s\n",
+		return String.format("%s%-12s | %-6s | %-6s%s<br/>",
+				"<font color='" + lineColor + "'>",
 				Text.toJagexName(ma.member.getName()),
-				timeFormat(ticksToSeconds(ma.totalTicks)),
-				isLate ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-");
+				timeFormat(ticksToSeconds(ma.ticksTotal)),
+				isLate ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-",
+				"</font>");
 	}
 
 	private String timeFormat(int totalSeconds)
@@ -438,5 +456,11 @@ public class ClanEventAttendancePlugin extends Plugin
 	private int ticksToSeconds(int ticks)
 	{
 		return (int)(ticks * 0.6f);
+	}
+
+	public void addChatMessage(String message)
+	{
+		message = ColorUtil.wrapWithColorTag(message, Color.RED);
+		client.addChatMessage(ChatMessageType.CONSOLE, "", message, null);
 	}
 }

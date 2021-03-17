@@ -32,6 +32,8 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
 
+import java.awt.*;
+
 @ConfigGroup("ClanEventAttendance")
 public interface ClanEventAttendanceConfig extends Config
 {
@@ -49,27 +51,107 @@ public interface ClanEventAttendanceConfig extends Config
 	)
 	String textFormattingSection = "TextFormatting";
 
-	@ConfigItem(keyName = "activeThreshold", name = "Active Threshold", description = "The required time for a member to be consider part of the event expressed in seconds", section=eventConfigSection,  position = 2)
-	default int getActiveThreshold()
+	@ConfigSection(
+			name = "Panel config",
+			description = "Panel related configs",
+			position = 2
+	)
+	String panelConfigSection = "PanelConfig";
+
+
+	@ConfigItem(
+			keyName = "timeThreshold",
+			name = "Time threshold",
+			description = "The required time for a member to be consider part of the event expressed in seconds",
+			section=eventConfigSection,
+			position = 1
+	)
+	default int getTimeThreshold()
 	{
 		return 60 * 5;
 	}
 
-	@ConfigItem(keyName = "lateThreshold", name = "Late Threshold", description = "The required time for a member to be consider late expressed in seconds", section=eventConfigSection, position = 3)
+	@ConfigItem(
+			keyName = "lateThreshold",
+			name = "Late threshold",
+			description = "The required time for a member to be consider late expressed in seconds",
+			section=eventConfigSection,
+			position = 2
+	)
 	default int getLateThreshold()
 	{
 		return 5;
 	}
 
-	@ConfigItem(keyName = "discordMarkdown", name = "Discord markdown", description = "Surrounds the final list with multiline code blocks markdown for better Discord display", section=textFormattingSection, position = 4)
+	@ConfigItem(
+			keyName = "discordMarkdown",
+			name = "Discord markdown",
+			description = "Surrounds the final list with multiline code blocks markdown for better Discord display",
+			section=textFormattingSection,
+			position = 3
+	)
 	default boolean getDiscordMarkdown()
 	{
 		return false;
 	}
 
-	@ConfigItem(keyName = "textPrefix", name = "Text prefix", description = "This text block will be added as a prefix to the final result", section=textFormattingSection, position = 5)
+	@ConfigItem(
+			keyName = "textPrefix",
+			name = "Text prefix",
+			description = "This text block will be added as a prefix to the final result",
+			section=textFormattingSection,
+			position = 4
+	)
 	default String getTextPrefix()
 	{
-		return "Event name: \nHosted by:";
+		return "Event name: \nHosted by: ";
+	}
+
+	@ConfigItem(
+			keyName = "textSuffix",
+			name = "Text suffix",
+			description = "This text block will be added as a suffix to the final result",
+			section=textFormattingSection,
+			position = 4
+	)
+	default String getTextSuffix()
+	{
+		return "Thanks for coming!";
+	}
+
+	@ConfigItem(
+			keyName = "activeColor",
+			name = "Active color",
+			description = "The color used to display currently active members",
+			section = panelConfigSection,
+			position = 6
+	)
+	default Color getActiveColor()
+	{
+		return Color.green;
+	}
+
+	@ConfigItem(
+			keyName = "inactiveColor",
+			name = "Inactive color",
+			description = "The color used to display currently inactive members",
+			section = panelConfigSection,
+			position = 7
+	)
+	default Color getInactiveColor()
+	{
+		return Color.red;
+	}
+
+	@ConfigItem(
+			keyName = "blockCopyButtons",
+			name = "Block copy buttons",
+			description = "Prevents copying content while event is running",
+			section=panelConfigSection,
+			position = 8
+	)
+	default boolean getBlockCopyButtons()
+	{
+		return true;
 	}
 }
