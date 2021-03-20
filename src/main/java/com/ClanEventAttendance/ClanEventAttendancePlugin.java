@@ -429,11 +429,11 @@ public class ClanEventAttendancePlugin extends Plugin
 		if(eventRunning)
 			lineColor = ma.isPresent ? presentColorText : absentColorText;
 
-		// ex: JoRouss      | 06:46  | 01:07  // !isLate
-		// ex: SomeDude     | 236:46 | -      //  isLate
+		// ex: JoRouss      | 06:46  | 01:07  //   isLate
+		// ex: SomeDude     | 236:46 | -      //  !isLate
 		return String.format("%s%-12s | %-6s | %-6s%s<br/>",
 				"<font color='" + lineColor + "'>",
-				Text.toJagexName(ma.member.getName()),
+				ma.member.getName(),
 				timeFormat(ticksToSeconds(ma.ticksTotal)),
 				isLate ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-",
 				"</font>");
