@@ -134,6 +134,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		}
 
 		panel.updatePanel(config, this);
+		panel.setText("");
 	}
 
 	public void stopEvent()
