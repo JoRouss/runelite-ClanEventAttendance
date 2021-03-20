@@ -116,8 +116,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	public void startEvent()
 	{
-		//log.info("Event started");
-
 		attendanceBuffer.clear();
 
 		eventStartedAt = client.getTickCount();
@@ -139,8 +137,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	public void stopEvent()
 	{
-		//log.info("Event stopped");
-
 		for (String key : attendanceBuffer.keySet())
 		{
 			compileTicks(key);
@@ -155,8 +151,6 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onPlayerSpawned(PlayerSpawned event)
 	{
-		//log.info("onPlayerSpawned: " + Text.toJagexName(event.getPlayer().getName()) + " isFriendsChatMember:" + event.getPlayer().isFriendsChatMember());
-
 		if (!eventRunning)
 			return;
 
@@ -165,7 +159,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (!player.isFriendsChatMember())
 			return;
 
-		String playerName = Text.toJagexName(player.getName());
+		final String playerName = player.getName();
 
 		addPlayer(player);
 		unpausePlayer(playerName);
@@ -174,15 +168,14 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onPlayerDespawned(PlayerDespawned event)
 	{
-		//log.info("onPlayerDespawned " + Text.toJagexName(event.getPlayer().getName()));
-
 		if (!eventRunning)
 			return;
 
 		final Player player = event.getPlayer();
-		String playerName = Text.toJagexName(player.getName());
+		final String playerName = player.getName();
+		final String playerKey = nameToKey(player.getName());
 
-		if (!attendanceBuffer.containsKey(playerName.toLowerCase()))
+		if (!attendanceBuffer.containsKey(playerKey))
 			return;
 
 		compileTicks(playerName);
@@ -193,8 +186,6 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onFriendsChatMemberJoined(FriendsChatMemberJoined event)
 	{
-		//log.info("onFriendsChatMemberJoined: " + Text.toJagexName(event.getMember().getName()) + " in world: " + event.getMember().getWorld());
-
 		if (!eventRunning)
 			return;
 
@@ -204,17 +195,17 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (member.getWorld() != client.getWorld())
 			return;
 
-		final String memberName = Text.toJagexName(member.getName());
+		final String memberName = member.getName();
 
 		for (final Player player : client.getPlayers())
 		{
 			if (player == null)
 				continue;
 
-			String playerName = Text.toJagexName(player.getName());
+			String playerName = player.getName();
 
 			// If they're the one that joined the cc
-			if (memberName.equals(playerName))
+			if (nameToKey(memberName).equals(nameToKey(playerName)))
 			{
 				addPlayer(player);
 				unpausePlayer(playerName);
@@ -227,8 +218,6 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onFriendsChatMemberLeft(FriendsChatMemberLeft event)
 	{
-		//log.info("onFriendsChatMemberLeft " + Text.toJagexName(event.getMember().getName()));
-
 		if (!eventRunning)
 			return;
 
@@ -238,7 +227,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (member.getWorld() != client.getWorld())
 			return;
 
-		final String memberName = Text.toJagexName(member.getName());
+		final String memberName = member.getName();
 
 		compileTicks(memberName);
 		pausePlayer(memberName);
@@ -247,8 +236,6 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onFriendsChatChanged(FriendsChatChanged event)
 	{
-		//log.info("onFriendsChatChanged" + event.isJoined());
-
 		if (!eventRunning)
 			return;
 
@@ -266,50 +253,49 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private void addPlayer(Player player)
 	{
-		String playerName = Text.toJagexName(player.getName());
-		playerName = playerName.toLowerCase();
+		final String playerKey = nameToKey(player.getName());
 
 		// if player is not in the attendance buffer, add it
-		if (!attendanceBuffer.containsKey(playerName))
+		if (!attendanceBuffer.containsKey(playerKey))
 		{
 			MemberAttendance memberAttendance = new MemberAttendance(player,
 					client.getTickCount() - eventStartedAt,
 					client.getTickCount(),
 					0,
 					false);
-			attendanceBuffer.put(playerName, memberAttendance);
+			attendanceBuffer.put(playerKey, memberAttendance);
 		}
 	}
 
 	private void pausePlayer(String playerName)
 	{
-		playerName = playerName.toLowerCase();
+		final String playerKey = nameToKey(playerName);
 
-		if (!attendanceBuffer.containsKey(playerName))
+		if (!attendanceBuffer.containsKey(playerKey))
 			return;
 
-		MemberAttendance ma = attendanceBuffer.get(playerName);
+		MemberAttendance ma = attendanceBuffer.get(playerKey);
 		ma.isPresent = false;
 	}
 
 	private void unpausePlayer(String playerName)
 	{
-		playerName = playerName.toLowerCase();
+		final String playerKey = nameToKey(playerName);
 
-		if (!attendanceBuffer.containsKey(playerName))
+		if (!attendanceBuffer.containsKey(playerKey))
 			return;
 
-		MemberAttendance ma = attendanceBuffer.get(playerName);
+		MemberAttendance ma = attendanceBuffer.get(playerKey);
 		ma.isPresent = true;
 		ma.tickActivityStarted = client.getTickCount();
 	}
 
 	private void compileTicks(String playerName)
 	{
-		playerName = playerName.toLowerCase();
+		final String playerKey = nameToKey(playerName);
 
 		// Add elapsed tick to the total
-		MemberAttendance ma = attendanceBuffer.get(playerName);
+		MemberAttendance ma = attendanceBuffer.get(playerKey);
 
 		if (!ma.isPresent)
 			return;
@@ -463,5 +449,10 @@ public class ClanEventAttendancePlugin extends Plugin
 	{
 		message = ColorUtil.wrapWithColorTag(message, Color.RED);
 		client.addChatMessage(ChatMessageType.CONSOLE, "", message, null);
+	}
+
+	private String nameToKey(String playerName)
+	{
+		return Text.toJagexName(playerName).toLowerCase();
 	}
 }
