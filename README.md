@@ -18,10 +18,13 @@ Config
 ------
 
 The config page allows to:
-- Set a time threshold to consider a member part of the event
-- Set a time threshold to consider a member late at the event
-- Surround the final list with multiline code blocks markdown for better Discord display
-- Type a text block that will be added as a prefix to the final result
+- Time threshold: Set a time threshold to consider a member part of the event
+- Late threshold: Set a time threshold to consider a member late at the event
+- Discord markdown: Surround the final list with multiline code blocks markdown for better Discord display
+- Text prefix: Type a text block that will be added on top of the final result
+- Text suffix: Type a text block that will be added at the bottom of the final result
+- Present/Absent colors: The color to display members while the event is running
+- Block copy button: Prevents copying the text while the event is still running
 
 ![Config Page](/assets/config2.png "Config Page")
 
