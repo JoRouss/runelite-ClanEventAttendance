@@ -23,7 +23,7 @@ The config page allows to:
 - Surround the final list with multiline code blocks markdown for better Discord display
 - Type a text block that will be added as a prefix to the final result
 
-![Config Page](/assets/config.png "Config Page")
+![Config Page](/assets/config2.png "Config Page")
 
 Screenshots
 -----------
