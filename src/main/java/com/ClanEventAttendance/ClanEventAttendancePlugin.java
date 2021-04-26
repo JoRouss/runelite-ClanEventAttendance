@@ -69,6 +69,7 @@ public class ClanEventAttendancePlugin extends Plugin
 	private NavigationButton navButton;
 
 	private int eventStartedAt;
+	private int eventStoppedAt;
 	public boolean eventRunning;
 
 	private final Map<String, MemberAttendance> attendanceBuffer = new TreeMap<>();
@@ -142,6 +143,7 @@ public class ClanEventAttendancePlugin extends Plugin
 			compileTicks(key);
 		}
 
+		eventStoppedAt = client.getTickCount();
 		eventRunning = false;
 
 		panel.setText(generateTextData(true));
@@ -360,7 +362,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		// ex: Event duration: 18:36
 		attendanceString.append("Event duration: ");
-		attendanceString.append(timeFormat(ticksToSeconds(client.getTickCount() - eventStartedAt)));
+		final int durationTargetTick = eventRunning ? client.getTickCount() : eventStoppedAt;
+		attendanceString.append(timeFormat(ticksToSeconds(durationTargetTick - eventStartedAt)));
 		attendanceString.append("<br/><br/>");
 
 		if (finalDisplay && config.getDiscordMarkdown())
