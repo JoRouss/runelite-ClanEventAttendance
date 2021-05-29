@@ -235,24 +235,6 @@ public class ClanEventAttendancePlugin extends Plugin
 		pausePlayer(memberName);
 	}
 
-	@Subscribe
-	public void onFriendsChatChanged(FriendsChatChanged event)
-	{
-		if (!eventRunning)
-			return;
-
-		//If I'm joining a cc, skip this
-		if (event.isJoined())
-			return;
-
-		// Pause everyone
-		for (String key : attendanceBuffer.keySet())
-		{
-			compileTicks(key);
-			pausePlayer(key);
-		}
-	}
-
 	private void addPlayer(Player player)
 	{
 		final String playerKey = nameToKey(player.getName());
