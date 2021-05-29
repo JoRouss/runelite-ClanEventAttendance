@@ -28,10 +28,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.ClanEventAttendance;
 
 import com.google.inject.Provides;
+import java.awt.Color;
+import java.util.Map;
+import java.util.TreeMap;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.*;
-import net.runelite.api.events.*;
+import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
+import net.runelite.api.Player;
+import net.runelite.api.clan.ClanChannelMember;
+import net.runelite.api.events.ClanMemberJoined;
+import net.runelite.api.events.ClanMemberLeft;
+import net.runelite.api.events.GameTick;
+import net.runelite.api.events.PlayerDespawned;
+import net.runelite.api.events.PlayerSpawned;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -42,10 +52,7 @@ import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
-
-import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -125,7 +132,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		// Add all members around myself
 		for (final Player player : client.getPlayers())
 		{
-			if (player != null && player.isFriendsChatMember())
+			if (player != null && player.isClanMember())
 			{
 				addPlayer(player);
 				unpausePlayer(player.getName());
@@ -158,7 +165,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final Player player = event.getPlayer();
 
-		if (!player.isFriendsChatMember())
+		if (!player.isClanMember())
 			return;
 
 		final String playerName = player.getName();
@@ -186,12 +193,12 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	// Fires for every online member when I myself join a cc (including myself, after everyone else)
 	@Subscribe
-	public void onFriendsChatMemberJoined(FriendsChatMemberJoined event)
+	public void onClanMemberJoined(ClanMemberJoined event)
 	{
 		if (!eventRunning)
 			return;
 
-		final FriendsChatMember member = event.getMember();
+		final ClanChannelMember member = event.getClanMember();
 
 		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
@@ -218,12 +225,12 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	// Does not fire at all when I myself leave a cc
 	@Subscribe
-	public void onFriendsChatMemberLeft(FriendsChatMemberLeft event)
+	public void onClanMemberLeft(ClanMemberLeft event)
 	{
 		if (!eventRunning)
 			return;
 
-		final FriendsChatMember member = event.getMember();
+		final ClanChannelMember member = event.getClanMember();
 
 		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
