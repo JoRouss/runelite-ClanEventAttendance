@@ -27,12 +27,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.ClanEventAttendance;
 
+import java.awt.Color;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
-
-import java.awt.*;
 
 @ConfigGroup("ClanEventAttendance")
 public interface ClanEventAttendanceConfig extends Config
@@ -40,31 +39,41 @@ public interface ClanEventAttendanceConfig extends Config
 	@ConfigSection(
 			name = "Event config",
 			description = "Event related configs",
-			position = 0
+			position = 1
 	)
 	String eventConfigSection = "EventConfig";
 
 	@ConfigSection(
 			name = "Text post-formatting",
 			description = "How to format text after the event is stopped",
-			position = 1
+			position = 2
 	)
 	String textFormattingSection = "TextFormatting";
 
 	@ConfigSection(
 			name = "Panel config",
 			description = "Panel related configs",
-			position = 2
+			position = 3
 	)
 	String panelConfigSection = "PanelConfig";
 
+	@ConfigItem(
+		keyName = "filterType",
+		name = "Monitor channel",
+		description = "What channel to monitor members from",
+		position = 0
+	)
+	default ClanChannelType filterType()
+	{
+		return ClanChannelType.CLAN_CHAT;
+	}
 
 	@ConfigItem(
 			keyName = "timeThreshold",
 			name = "Time threshold",
 			description = "The required time for a member to be consider part of the event expressed in seconds",
 			section=eventConfigSection,
-			position = 1
+			position = 2
 	)
 	default int getTimeThreshold()
 	{
@@ -76,7 +85,7 @@ public interface ClanEventAttendanceConfig extends Config
 			name = "Late threshold",
 			description = "The required time for a member to be consider late expressed in seconds",
 			section=eventConfigSection,
-			position = 2
+			position = 3
 	)
 	default int getLateThreshold()
 	{
@@ -88,7 +97,7 @@ public interface ClanEventAttendanceConfig extends Config
 			name = "Discord markdown",
 			description = "Surrounds the final list with multiline code blocks markdown for better Discord display",
 			section=textFormattingSection,
-			position = 3
+			position = 4
 	)
 	default boolean getDiscordMarkdown()
 	{
@@ -100,7 +109,7 @@ public interface ClanEventAttendanceConfig extends Config
 			name = "Text prefix",
 			description = "This text block will be added as a prefix to the final result",
 			section=textFormattingSection,
-			position = 4
+			position = 5
 	)
 	default String getTextPrefix()
 	{
@@ -112,7 +121,7 @@ public interface ClanEventAttendanceConfig extends Config
 			name = "Text suffix",
 			description = "This text block will be added as a suffix to the final result",
 			section=textFormattingSection,
-			position = 4
+			position = 6
 	)
 	default String getTextSuffix()
 	{
@@ -124,7 +133,7 @@ public interface ClanEventAttendanceConfig extends Config
 			name = "Present color",
 			description = "The color used to display currently present members",
 			section = panelConfigSection,
-			position = 6
+			position = 7
 	)
 	default Color getPresentColor()
 	{
@@ -136,7 +145,7 @@ public interface ClanEventAttendanceConfig extends Config
 			name = "Absent color",
 			description = "The color used to display currently absent members",
 			section = panelConfigSection,
-			position = 7
+			position = 8
 	)
 	default Color getAbsentColor()
 	{
@@ -148,7 +157,7 @@ public interface ClanEventAttendanceConfig extends Config
 			name = "Block copy buttons",
 			description = "Prevents copying content while event is running",
 			section=panelConfigSection,
-			position = 8
+			position = 9
 	)
 	default boolean getBlockCopyButtons()
 	{

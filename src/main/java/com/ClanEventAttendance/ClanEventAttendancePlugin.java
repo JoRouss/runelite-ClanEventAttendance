@@ -35,10 +35,13 @@ import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
+import net.runelite.api.FriendsChatMember;
 import net.runelite.api.Player;
 import net.runelite.api.clan.ClanChannelMember;
 import net.runelite.api.events.ClanMemberJoined;
 import net.runelite.api.events.ClanMemberLeft;
+import net.runelite.api.events.FriendsChatMemberJoined;
+import net.runelite.api.events.FriendsChatMemberLeft;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.PlayerDespawned;
 import net.runelite.api.events.PlayerSpawned;
@@ -84,6 +87,9 @@ public class ClanEventAttendancePlugin extends Plugin
 	private String presentColorText;
 	private String absentColorText;
 	private final String defaultColorText = "#FFFFFF"; //white
+
+	private boolean CC_Valid;
+	private boolean FC_Valid;
 
 	@Provides
 	ClanEventAttendanceConfig provideConfig(ConfigManager configManager)
@@ -132,7 +138,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		// Add all members around myself
 		for (final Player player : client.getPlayers())
 		{
-			if (player != null && player.isClanMember())
+			if (player != null && IsValid(player))
 			{
 				addPlayer(player);
 				unpausePlayer(player.getName());
@@ -157,6 +163,17 @@ public class ClanEventAttendancePlugin extends Plugin
 		panel.updatePanel(config, this);
 	}
 
+	private boolean IsValid(Player player)
+	{
+		if (CC_Valid && player.isClanMember())
+			return true;
+
+		if (FC_Valid && player.isFriendsChatMember())
+			return true;
+
+		return false;
+	}
+
 	@Subscribe
 	public void onPlayerSpawned(PlayerSpawned event)
 	{
@@ -165,7 +182,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final Player player = event.getPlayer();
 
-		if (!player.isClanMember())
+		if (!IsValid(player))
 			return;
 
 		final String playerName = player.getName();
@@ -191,11 +208,13 @@ public class ClanEventAttendancePlugin extends Plugin
 		pausePlayer(playerName);
 	}
 
-	// Fires for every online member when I myself join a cc (including myself, after everyone else)
 	@Subscribe
 	public void onClanMemberJoined(ClanMemberJoined event)
 	{
 		if (!eventRunning)
+			return;
+
+		if (!CC_Valid)
 			return;
 
 		final ClanChannelMember member = event.getClanMember();
@@ -230,6 +249,9 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (!eventRunning)
 			return;
 
+		if (!CC_Valid)
+			return;
+
 		final ClanChannelMember member = event.getClanMember();
 
 		// Skip if he's not in my world
@@ -237,6 +259,83 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		final String memberName = member.getName();
+
+		final String playerKey = nameToKey(memberName);
+		if (!attendanceBuffer.containsKey(playerKey))
+			return;
+
+		MemberAttendance ma = attendanceBuffer.get(playerKey);
+
+		// He's still in fc
+		if (FC_Valid && ma.member.isFriendsChatMember())
+			return;
+
+		compileTicks(memberName);
+		pausePlayer(memberName);
+	}
+
+	// Fires for every online member when I myself join a cc (including myself, after everyone else)
+	@Subscribe
+	public void onFriendsChatMemberJoined(FriendsChatMemberJoined event)
+	{
+		if (!eventRunning)
+			return;
+
+		if (!FC_Valid)
+			return;
+
+		final FriendsChatMember member = event.getMember();
+
+		// Skip if he's not in my world
+		if (member.getWorld() != client.getWorld())
+			return;
+
+		final String memberName = member.getName();
+
+		for (final Player player : client.getPlayers())
+		{
+			if (player == null)
+				continue;
+
+			String playerName = player.getName();
+
+			// If they're the one that joined the fc
+			if (nameToKey(memberName).equals(nameToKey(playerName)))
+			{
+				addPlayer(player);
+				unpausePlayer(playerName);
+				break;
+			}
+		}
+	}
+
+	// Does not fire at all when I myself leave a cc
+	@Subscribe
+	public void onFriendsChatMemberLeft(FriendsChatMemberLeft event)
+	{
+		if (!eventRunning)
+			return;
+
+		if (!FC_Valid)
+			return;
+
+		final FriendsChatMember member = event.getMember();
+
+		// Skip if he's not in my world
+		if (member.getWorld() != client.getWorld())
+			return;
+
+		final String memberName = member.getName();
+
+		final String playerKey = nameToKey(memberName);
+		if (!attendanceBuffer.containsKey(playerKey))
+			return;
+
+		MemberAttendance ma = attendanceBuffer.get(playerKey);
+
+		// He's still in cc
+		if (CC_Valid && ma.member.isClanMember())
+			return;
 
 		compileTicks(memberName);
 		pausePlayer(memberName);
@@ -277,6 +376,10 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		MemberAttendance ma = attendanceBuffer.get(playerKey);
+
+		if (ma.isPresent)
+			return;
+
 		ma.isPresent = true;
 		ma.tickActivityStarted = client.getTickCount();
 	}
@@ -285,12 +388,15 @@ public class ClanEventAttendancePlugin extends Plugin
 	{
 		final String playerKey = nameToKey(playerName);
 
-		// Add elapsed tick to the total
+		if (!attendanceBuffer.containsKey(playerKey))
+			return;
+
 		MemberAttendance ma = attendanceBuffer.get(playerKey);
 
 		if (!ma.isPresent)
 			return;
 
+		// Add elapsed tick to the total
 		ma.ticksTotal += client.getTickCount() - ma.tickActivityStarted;
 		ma.tickActivityStarted = client.getTickCount();
 	}
@@ -313,6 +419,9 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
+		CC_Valid = config.filterType() == ClanChannelType.CLAN_CHAT || config.filterType() == ClanChannelType.BOTH;
+		FC_Valid = config.filterType() == ClanChannelType.FRIENDS_CHAT || config.filterType() == ClanChannelType.BOTH;
+
 		presentColorText = "#" + Integer.toHexString(config.getPresentColor().getRGB()).substring(2);
 		absentColorText = "#" + Integer.toHexString(config.getAbsentColor().getRGB()).substring(2);
 
