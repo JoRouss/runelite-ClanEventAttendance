@@ -42,6 +42,7 @@ import net.runelite.api.events.ClanMemberJoined;
 import net.runelite.api.events.ClanMemberLeft;
 import net.runelite.api.events.FriendsChatMemberJoined;
 import net.runelite.api.events.FriendsChatMemberLeft;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.PlayerDespawned;
 import net.runelite.api.events.PlayerSpawned;
@@ -91,10 +92,23 @@ public class ClanEventAttendancePlugin extends Plugin
 	private boolean CC_Valid;
 	private boolean FC_Valid;
 
+	private int ScanDelay;
+
 	@Provides
 	ClanEventAttendanceConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(ClanEventAttendanceConfig.class);
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		switch (event.getGameState())
+		{
+			case HOPPING:
+			case LOGGING_IN:
+				ScanDelay = 1;
+		}
 	}
 
 	@Override
@@ -406,6 +420,20 @@ public class ClanEventAttendancePlugin extends Plugin
 	{
 		if (!eventRunning)
 			return;
+
+		if (ScanDelay == 0)
+		{
+			for (final Player player : client.getPlayers())
+			{
+				if (player == null || !IsValid(player))
+					continue;
+
+				addPlayer(player);
+				unpausePlayer(player.getName());
+			}
+		}
+
+		ScanDelay--;
 
 		for (String key : attendanceBuffer.keySet())
 		{
