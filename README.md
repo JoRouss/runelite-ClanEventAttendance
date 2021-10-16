@@ -9,10 +9,25 @@ It tracks the event duration and for every clan member, the time spent at the ev
 
 At the end of the event, you can copy/paste the attendance list to your clan's social media, like Discord.
 
-![Discord report](/assets/ClanEventAttendance6.png "Discord report")
+![Discord report](./assets/ClanEventAttendance6.png "Discord report")
 
 | NOTE: If your event takes place in multiple instances, you can have multiple members of your clan run the plugin and merge the resulting lists manually afterward |
 | --- |
+
+How to use
+----------
+
+1. Open the Clan Event Attendance panel.
+2. Click "Start event". The plugin will start tracking clan members around you.  
+![How to](./assets/howto1.png "How to")
+3. When the event is over, click "Stop event".  
+![How to](./assets/howto2.png "How to")
+4. Click "Copy text to clipboard". This will place the text in your clipboard for you to paste it in your social media.  
+![How to](./assets/howto3.png "How to")
+5. Paste the result in your social media (ex.: Discord) and edit the event name and host if needed.  
+![How to](./assets/howto4.png "How to")
+6. Hit "Enter" to submit the event.  
+![How to](./assets/howto5.png "How to")
 
 Config
 ------
@@ -26,14 +41,14 @@ The config page allows to:
 - Present/Absent colors: The color to display members while the event is running
 - Block copy button: Prevents copying the text while the event is still running
 
-![Config Page](/assets/config2.png "Config Page")
+![Config Page](./assets/config2.png "Config Page")
 
 Screenshots
 -----------
 
-![Fake event](/assets/ClanEventAttendance4.png "Fake event")
-![Event1](/assets/ClanEventExample1.jpg "Event1")
-![Event2](/assets/ClanEventExample2.jpg "Event2")
+![Panel](./assets/screen1.png "Panel")
+![Event1](./assets/example1.jpg "Event1")
+![Event2](./assets/example2.png "Event2")
 
 License
 -------
