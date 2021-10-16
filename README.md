@@ -19,9 +19,9 @@ How to use
 
 1. Open the Clan Event Attendance panel.
 2. Click "Start event". The plugin will start tracking clan members around you.  
-![How to](./assets/howto1.png "How to")
+![How to](./assets/howto1.PNG "How to")
 3. When the event is over, click "Stop event".  
-![How to](./assets/howto2.png "How to")
+![How to](./assets/howto2.PNG "How to")
 4. Click "Copy text to clipboard". This will place the text in your clipboard for you to paste it in your social media.  
 ![How to](./assets/howto3.png "How to")
 5. Paste the result in your social media (ex.: Discord) and edit the event name and host if needed.  
