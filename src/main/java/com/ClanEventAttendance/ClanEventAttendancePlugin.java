@@ -152,7 +152,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		// Add all members around myself
 		for (final Player player : client.getPlayers())
 		{
-			if (player != null && IsValid(player))
+			if (player != null && IsValid(player, true, true))
 			{
 				addPlayer(player);
 				unpausePlayer(player.getName());
@@ -177,12 +177,12 @@ public class ClanEventAttendancePlugin extends Plugin
 		panel.updatePanel(config, this);
 	}
 
-	private boolean IsValid(Player player)
+	private boolean IsValid(Player player, boolean validateCC, boolean validateFC)
 	{
-		if (CC_Valid && player.isClanMember())
+		if (validateCC && CC_Valid && player.isClanMember())
 			return true;
 
-		if (FC_Valid && player.isFriendsChatMember())
+		if (validateFC && FC_Valid && player.isFriendsChatMember())
 			return true;
 
 		return false;
@@ -196,7 +196,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final Player player = event.getPlayer();
 
-		if (!IsValid(player))
+		if (!IsValid(player, true, true))
 			return;
 
 		final String playerName = player.getName();
@@ -233,7 +233,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final ClanChannelMember member = event.getClanMember();
 
-		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
 			return;
 
@@ -268,7 +267,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final ClanChannelMember member = event.getClanMember();
 
-		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
 			return;
 
@@ -280,8 +278,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		MemberAttendance ma = attendanceBuffer.get(playerKey);
 
-		// He's still in fc
-		if (FC_Valid && ma.member.isFriendsChatMember())
+		if (IsValid(ma.member, false, true))
 			return;
 
 		compileTicks(memberName);
@@ -300,7 +297,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final FriendsChatMember member = event.getMember();
 
-		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
 			return;
 
@@ -335,7 +331,6 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final FriendsChatMember member = event.getMember();
 
-		// Skip if he's not in my world
 		if (member.getWorld() != client.getWorld())
 			return;
 
@@ -347,8 +342,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		MemberAttendance ma = attendanceBuffer.get(playerKey);
 
-		// He's still in cc
-		if (CC_Valid && ma.member.isClanMember())
+		if (IsValid(ma.member, true, false))
 			return;
 
 		compileTicks(memberName);
@@ -425,7 +419,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		{
 			for (final Player player : client.getPlayers())
 			{
-				if (player == null || !IsValid(player))
+				if (player == null || !IsValid(player, true, true))
 					continue;
 
 				addPlayer(player);
