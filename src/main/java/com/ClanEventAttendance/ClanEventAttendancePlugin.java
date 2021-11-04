@@ -29,6 +29,7 @@ package com.ClanEventAttendance;
 
 import com.google.inject.Provides;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.inject.Inject;
@@ -38,6 +39,7 @@ import net.runelite.api.Client;
 import net.runelite.api.FriendsChatMember;
 import net.runelite.api.Player;
 import net.runelite.api.clan.ClanChannelMember;
+import net.runelite.api.events.ClanChannelChanged;
 import net.runelite.api.events.ClanMemberJoined;
 import net.runelite.api.events.ClanMemberLeft;
 import net.runelite.api.events.FriendsChatMemberJoined;
@@ -94,6 +96,9 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private int ScanDelay;
 
+	private ArrayList<String> ClanMembers = new ArrayList<>();
+
+
 	@Provides
 	ClanEventAttendanceConfig provideConfig(ConfigManager configManager)
 	{
@@ -149,15 +154,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		eventStartedAt = client.getTickCount();
 		eventRunning = true;
 
-		// Add all members around myself
-		for (final Player player : client.getPlayers())
-		{
-			if (player != null && IsValid(player, true, true))
-			{
-				addPlayer(player);
-				unpausePlayer(player.getName());
-			}
-		}
+		ScanDelay = 1;
 
 		panel.updatePanel(config, this);
 		panel.setText("");
@@ -183,6 +180,9 @@ public class ClanEventAttendancePlugin extends Plugin
 			return true;
 
 		if (validateFC && FC_Valid && player.isFriendsChatMember())
+			return true;
+
+		if (validateCC && CC_Valid && ClanMembers.contains(nameToKey(player.getName())))
 			return true;
 
 		return false;
@@ -223,6 +223,22 @@ public class ClanEventAttendancePlugin extends Plugin
 	}
 
 	@Subscribe
+	public void onClanChannelChanged(ClanChannelChanged event)
+	{
+		ClanMembers.clear();
+
+		if (event.getClanChannel() == null)
+		{
+			log.info("onClanChannelChanged, null");
+			return;
+		}
+
+		log.info("onClanChannelChanged, members count: " + event.getClanChannel().getMembers().stream().count());
+		event.getClanChannel().getMembers().forEach(member -> ClanMembers.add(nameToKey(member.getName())));
+		ScanDelay = 1;
+	}
+
+	@Subscribe
 	public void onClanMemberJoined(ClanMemberJoined event)
 	{
 		if (!eventRunning)
@@ -232,6 +248,7 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		final ClanChannelMember member = event.getClanMember();
+		ClanMembers.add(nameToKey(member.getName()));
 
 		if (member.getWorld() != client.getWorld())
 			return;
@@ -266,6 +283,7 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		final ClanChannelMember member = event.getClanMember();
+		ClanMembers.remove(nameToKey(member.getName()));
 
 		if (member.getWorld() != client.getWorld())
 			return;
@@ -417,6 +435,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		if (ScanDelay == 0)
 		{
+			log.info("Scanning surrounding players");
 			for (final Player player : client.getPlayers())
 			{
 				if (player == null || !IsValid(player, true, true))
