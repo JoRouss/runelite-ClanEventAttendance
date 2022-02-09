@@ -233,8 +233,6 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 		}
 
-		log.info("onClanChannelChanged, members count: " + event.getClanChannel().getMembers().stream().count());
-		event.getClanChannel().getMembers().forEach(member -> ClanMembers.add(nameToKey(member.getName())));
 		ScanDelay = 1;
 	}
 
@@ -435,6 +433,9 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		if (ScanDelay == 0)
 		{
+			ClanMembers.clear();
+			client.getClanChannel().getMembers().forEach(member -> ClanMembers.add(nameToKey(member.getName())));
+
 			log.info("Scanning surrounding players");
 			for (final Player player : client.getPlayers())
 			{
