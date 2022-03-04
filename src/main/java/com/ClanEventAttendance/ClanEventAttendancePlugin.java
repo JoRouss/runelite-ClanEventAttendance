@@ -135,6 +135,8 @@ public class ClanEventAttendancePlugin extends Plugin
 		attendanceBuffer.clear();
 		eventRunning = false;
 
+		initConfig();
+
 		panel.init(config, this);
 	}
 
@@ -149,6 +151,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	public void startEvent()
 	{
+		log.info("startEvent");
+
 		attendanceBuffer.clear();
 
 		eventStartedAt = client.getTickCount();
@@ -162,6 +166,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	public void stopEvent()
 	{
+		log.info("stopEvent");
+
 		for (String key : attendanceBuffer.keySet())
 		{
 			compileTicks(key);
@@ -436,7 +442,6 @@ public class ClanEventAttendancePlugin extends Plugin
 			ClanMembers.clear();
 			client.getClanChannel().getMembers().forEach(member -> ClanMembers.add(nameToKey(member.getName())));
 
-			log.info("Scanning surrounding players");
 			for (final Player player : client.getPlayers())
 			{
 				if (player == null || !IsValid(player, true, true))
@@ -445,6 +450,8 @@ public class ClanEventAttendancePlugin extends Plugin
 				addPlayer(player);
 				unpausePlayer(player.getName());
 			}
+
+			log.info("Scanned " + attendanceBuffer.size() + " surrounding players");
 		}
 
 		ScanDelay--;
@@ -461,6 +468,13 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
+		initConfig();
+	}
+
+	private void initConfig()
+	{
+		log.info("initConfig");
+
 		CC_Valid = config.filterType() == ClanChannelType.CLAN_CHAT || config.filterType() == ClanChannelType.BOTH;
 		FC_Valid = config.filterType() == ClanChannelType.FRIENDS_CHAT || config.filterType() == ClanChannelType.BOTH;
 
