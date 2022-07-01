@@ -530,7 +530,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		}
 
 		// ex: Event duration: 18:36
-		attendanceString.append("Event duration: ");
+		attendanceString.append("Event Duration: ");
 		final int durationTargetTick = eventRunning ? client.getTickCount() : eventStoppedAt;
 		attendanceString.append(timeFormat(ticksToSeconds(durationTargetTick - eventStartedAt)));
 		attendanceString.append("<br/><br/>");
@@ -540,7 +540,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		if(activeSB.length() > 0)
 		{
-			attendanceString.append("Part of the event<br/>");
+			attendanceString.append("Present Members<br/>");
 			attendanceString.append("------------------------------<br/>");
 			if (config.lateMembers())
 			{
@@ -561,7 +561,7 @@ public class ClanEventAttendancePlugin extends Plugin
 				attendanceString.append("<br/>");
 
 			// ex: Below time threshold (03:00)
-			attendanceString.append("Below time threshold (");
+			attendanceString.append("Below Threshold (");
 			attendanceString.append(timeFormat(config.presentThreshold()));
 			attendanceString.append(")<br/>");
 
