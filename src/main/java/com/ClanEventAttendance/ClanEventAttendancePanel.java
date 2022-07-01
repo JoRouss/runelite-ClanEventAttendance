@@ -27,6 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.ClanEventAttendance;
 
+import com.ClanEventAttendance.config.OutputFormat;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
@@ -34,22 +35,22 @@ import net.runelite.client.ui.PluginPanel;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.datatransfer.*;
+import java.awt.image.BufferedImage;
 
 @Slf4j
 class ClanEventAttendancePanel extends PluginPanel
 {
     private final JButton startButton = new JButton();
     private final JButton copyTextButton = new JButton();
-
     private final JLabel textLabel = new JLabel();
+    private final JPanel topButtonsPanel = new JPanel();
+    private final JPanel textPanel = new JPanel();
+    private final JPanel bottomButtonsPanel = new JPanel();
 
-    private static final String BTN_START_TEXT = "Start event";
-    private static final String BTN_STOP_TEXT = "Stop event";
-    private static final String BTN_COPY_TEXT_TEXT = "Copy text to clipboard";
+    private static final String BTN_START_TEXT = "Start Event";
+    private static final String BTN_STOP_TEXT = "Stop Event";
+    private static final String BTN_COPY_TEXT_TEXT = "Copy to Clipboard";
 
 
     void init(ClanEventAttendanceConfig config, ClanEventAttendancePlugin plugin)
@@ -61,8 +62,7 @@ class ClanEventAttendancePanel extends PluginPanel
         setBorder(BorderFactory.createEmptyBorder(10, 5, 10, 5));
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JPanel topButtonsPanel = new JPanel();
-        topButtonsPanel.setLayout(new BorderLayout());
+        topButtonsPanel.setLayout(new BorderLayout(0, 10));
         topButtonsPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
 
         startButton.setText(plugin.eventRunning ? BTN_STOP_TEXT : BTN_START_TEXT);
@@ -70,35 +70,44 @@ class ClanEventAttendancePanel extends PluginPanel
 
         topButtonsPanel.add(startButton, BorderLayout.CENTER);
 
-        JPanel textPanel = new JPanel();
         textPanel.setLayout(new BorderLayout());
         textPanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
         textPanel.setBorder(new EmptyBorder(0, 5, 0, 5));
 
         textLabel.setOpaque(false);
         textLabel.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        textLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
         textPanel.add(textLabel, BorderLayout.NORTH);
 
-        JPanel bottomButtonsPanel = new JPanel();
         bottomButtonsPanel.setLayout(new BorderLayout());
         bottomButtonsPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
 
         copyTextButton.setText(BTN_COPY_TEXT_TEXT);
         copyTextButton.setFocusable(false);
 
-        bottomButtonsPanel.add(copyTextButton, BorderLayout.CENTER);
-
         add(topButtonsPanel, BorderLayout.NORTH);
         add(textPanel, BorderLayout.CENTER);
-        add(bottomButtonsPanel, BorderLayout.SOUTH);
-
-        startButton.addActionListener(new ActionListener()
+        if (config.topCopyButton())
         {
-            @Override
-            public void actionPerformed(ActionEvent e)
+            topButtonsPanel.add(copyTextButton, BorderLayout.SOUTH);
+        }
+        else
+        {
+            bottomButtonsPanel.add(copyTextButton, BorderLayout.CENTER);
+            add(bottomButtonsPanel, BorderLayout.SOUTH);
+        }
+
+        if (startButton.getActionListeners().length > 0)
+        {
+            startButton.removeActionListener(startButton.getActionListeners()[0]);
+        }
+
+        startButton.addActionListener(e ->
+        {
+            if (plugin.eventRunning)
             {
-                if (plugin.eventRunning)
+                if (config.confirmationMessages())
                 {
                     final int result = JOptionPane.showOptionDialog(topButtonsPanel,
                             "Are you sure you want to TERMINATE the event?\nYou won't be able to restart it.",
@@ -111,33 +120,51 @@ class ClanEventAttendancePanel extends PluginPanel
                 }
                 else
                 {
+                    plugin.stopEvent();
+                }
+            }
+            else
+            {
+                if (config.confirmationMessages())
+                {
                     final int result = JOptionPane.showOptionDialog(topButtonsPanel,
                             "Are you sure you want to START a new event?\nThis will delete current data.",
                             "Are you sure?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE,
                             null, new String[]{"Yes", "No"}, "No");
 
-                    if(result == JOptionPane.YES_OPTION){
+                    if (result == JOptionPane.YES_OPTION)
+                    {
                         plugin.startEvent();
                     }
+                }
+                else
+                {
+                    plugin.startEvent();
                 }
             }
         });
 
-        copyTextButton.addActionListener(new ActionListener()
+        copyTextButton.addActionListener(e ->
         {
-            @Override
-            public void actionPerformed(ActionEvent e)
+            String text = textLabel.getText();
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+
+            if (config.outputFormat() == OutputFormat.PNG)
             {
-                String text = textLabel.getText();
+                BufferedImage image = createImage(textLabel);
+                TransferableImage trans = new TransferableImage(image);
+
+                // Copied PNG image to clipboard
+                clipboard.setContents(trans, null);
+            }
+            else
+            {
                 text = text.replaceAll("(<br/>)", "\n");
                 text = text.replaceAll("<[^>]*>", "");
-
-                // Copy to clipboard
                 StringSelection stringSelection = new StringSelection(text);
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(stringSelection, null);
 
-                plugin.addChatMessage("Text copied to clipboard!");
+                // Copied text to clipboard
+                clipboard.setContents(stringSelection, null);
             }
         });
 
@@ -151,7 +178,58 @@ class ClanEventAttendancePanel extends PluginPanel
 
     void updatePanel(ClanEventAttendanceConfig config, ClanEventAttendancePlugin plugin)
     {
+
         startButton.setText(plugin.eventRunning ? BTN_STOP_TEXT : BTN_START_TEXT);
-        copyTextButton.setEnabled(config.getBlockCopyButtons() ? !plugin.eventRunning : true);
+        copyTextButton.setEnabled(!config.blockCopyButton() || !plugin.eventRunning);
+    }
+
+    public BufferedImage createImage(JLabel label) {
+
+        int w = label.getWidth();
+        int h = label.getHeight();
+        BufferedImage bi = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = bi.createGraphics();
+        label.paint(g);
+        g.dispose();
+        return bi;
+    }
+
+    private static class TransferableImage implements Transferable {
+
+        Image i;
+
+        public TransferableImage( Image i ) {
+            this.i = i;
+        }
+
+        public Object getTransferData( DataFlavor flavor )
+                throws UnsupportedFlavorException
+        {
+            if ( flavor.equals( DataFlavor.imageFlavor ) && i != null ) {
+                return i;
+            }
+            else {
+                throw new UnsupportedFlavorException( flavor );
+            }
+        }
+
+        public DataFlavor[] getTransferDataFlavors() {
+            DataFlavor[] flavors = new DataFlavor[ 1 ];
+            flavors[ 0 ] = DataFlavor.imageFlavor;
+            return flavors;
+        }
+
+        public boolean isDataFlavorSupported( DataFlavor flavor ) {
+            DataFlavor[] flavors = getTransferDataFlavors();
+            for (DataFlavor dataFlavor : flavors)
+            {
+                if (flavor.equals(dataFlavor))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
