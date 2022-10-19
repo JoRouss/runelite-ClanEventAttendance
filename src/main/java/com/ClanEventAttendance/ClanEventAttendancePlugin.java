@@ -468,7 +468,10 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		initConfig();
+		if (event.getGroup().equals("ClanEventAttendance"))
+		{
+			initConfig();
+		}
 	}
 
 	private void initConfig()
