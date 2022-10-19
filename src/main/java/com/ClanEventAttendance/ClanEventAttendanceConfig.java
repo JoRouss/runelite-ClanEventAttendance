@@ -28,39 +28,41 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.ClanEventAttendance;
 
 import java.awt.Color;
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
-import net.runelite.client.config.ConfigSection;
 
-@ConfigGroup("ClanEventAttendance")
+import com.ClanEventAttendance.config.ClanChannelType;
+import com.ClanEventAttendance.config.OutputFormat;
+import net.runelite.client.config.*;
+
+@ConfigGroup(ClanEventAttendancePlugin.CONFIG_GROUP)
 public interface ClanEventAttendanceConfig extends Config
 {
 	@ConfigSection(
-			name = "Event config",
-			description = "Event related configs",
+			name = "General",
+			description = "General configurations.",
 			position = 1
 	)
-	String eventConfigSection = "EventConfig";
+	String generalSection = "general";
 
 	@ConfigSection(
-			name = "Text post-formatting",
-			description = "How to format text after the event is stopped",
+			name = "Data Export",
+			description = "How to export the data after the event is stopped.",
 			position = 2
 	)
-	String textFormattingSection = "TextFormatting";
+	String dataExportSection = "dataExport";
 
 	@ConfigSection(
-			name = "Panel config",
-			description = "Panel related configs",
+			name = "User Interface",
+			description = "User interface configurations.",
 			position = 3
 	)
-	String panelConfigSection = "PanelConfig";
+	String userInterfaceSection = "userInterface";
+
 
 	@ConfigItem(
 		keyName = "filterType",
-		name = "Monitor channel",
-		description = "What channel to monitor members from",
+		name = "Event Chat",
+		description = "The chat(s) an event is for.",
+		section = generalSection,
 		position = 0
 	)
 	default ClanChannelType filterType()
@@ -69,97 +71,147 @@ public interface ClanEventAttendanceConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "timeThreshold",
-			name = "Time threshold",
-			description = "The required time for a member to be consider part of the event expressed in seconds",
-			section=eventConfigSection,
+			keyName = "presentThreshold",
+			name = "Time Threshold",
+			description = "The required time for a member to be consider part of the event expressed in seconds.",
+			section = generalSection,
+			position = 1
+	)
+	@Units(Units.SECONDS)
+	default int presentThreshold()
+	{
+		return 60 * 10;
+	}
+
+	@ConfigItem(
+			keyName = "lateMembers",
+			name = "Include Late Members",
+			description = "Enables keeping track of members who are late to an event.",
+			section = generalSection,
 			position = 2
 	)
-	default int getTimeThreshold()
+	default boolean lateMembers()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "lateThreshold",
+			name = "Late Threshold",
+			description = "The required time for a member to be consider late expressed in seconds.",
+			section = generalSection,
+			position = 3
+	)
+	@Units(Units.SECONDS)
+	default int lateThreshold()
 	{
 		return 60 * 5;
 	}
 
 	@ConfigItem(
-			keyName = "lateThreshold",
-			name = "Late threshold",
-			description = "The required time for a member to be consider late expressed in seconds",
-			section=eventConfigSection,
-			position = 3
+			keyName = "outputFormat",
+			name = "Output Format",
+			description = "What gets output to the user's clipboard when the copy button is pressed.",
+			section = dataExportSection,
+			position = 1
 	)
-	default int getLateThreshold()
+	default OutputFormat outputFormat()
 	{
-		return 5;
+		return OutputFormat.TEXT;
 	}
 
 	@ConfigItem(
 			keyName = "discordMarkdown",
-			name = "Discord markdown",
-			description = "Surrounds the final list with multiline code blocks markdown for better Discord display",
-			section=textFormattingSection,
-			position = 4
+			name = "Discord Code Block",
+			description = "Surrounds text attendance lists with a Discord multi-line code block.",
+			section = dataExportSection,
+			position = 2
 	)
-	default boolean getDiscordMarkdown()
+	default boolean discordMarkdown()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
 			keyName = "textPrefix",
-			name = "Text prefix",
-			description = "This text block will be added as a prefix to the final result",
-			section=textFormattingSection,
-			position = 5
+			name = "List Prefix",
+			description = "Text that gets added as a prefix to attendance lists.",
+			section = dataExportSection,
+			position = 3
 	)
-	default String getTextPrefix()
+	default String listPrefix()
 	{
 		return "Event name: \nHosted by: ";
 	}
 
 	@ConfigItem(
 			keyName = "textSuffix",
-			name = "Text suffix",
-			description = "This text block will be added as a suffix to the final result",
-			section=textFormattingSection,
-			position = 6
+			name = "List Suffix",
+			description = "Text that gets added as a suffix to attendance lists.",
+			section = dataExportSection,
+			position = 4
 	)
-	default String getTextSuffix()
+	default String listSuffix()
 	{
 		return "Thanks for coming!";
 	}
 
 	@ConfigItem(
 			keyName = "presentColor",
-			name = "Present color",
-			description = "The color used to display currently present members",
-			section = panelConfigSection,
-			position = 7
+			name = "Present Color",
+			description = "The color used for present members in attendance lists.",
+			section = userInterfaceSection,
+			position = 0
 	)
-	default Color getPresentColor()
+	default Color presentColor()
 	{
 		return Color.green;
 	}
 
 	@ConfigItem(
 			keyName = "absentColor",
-			name = "Absent color",
-			description = "The color used to display currently absent members",
-			section = panelConfigSection,
-			position = 8
+			name = "Absent Color",
+			description = "The color used for absent members in attendance lists.",
+			section = userInterfaceSection,
+			position = 1
 	)
-	default Color getAbsentColor()
+	default Color absentColor()
 	{
 		return Color.red;
 	}
 
 	@ConfigItem(
 			keyName = "blockCopyButtons",
-			name = "Block copy buttons",
-			description = "Prevents copying content while event is running",
-			section=panelConfigSection,
-			position = 9
+			name = "Block Copy Button",
+			description = "Blocks the copy button while an event is in progress.",
+			section = userInterfaceSection,
+			position = 2
 	)
-	default boolean getBlockCopyButtons()
+	default boolean blockCopyButton()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "topCopyButton",
+			name = "Top Copy Button",
+			description = "Places the copy button at the top instead of the bottom.",
+			section = userInterfaceSection,
+			position = 1
+	)
+	default boolean topCopyButton()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+			keyName = "confirmationMessages",
+			name = "Confirmation Messages",
+			description = "Enables confirmation messages when stopping and starting events.",
+			section = userInterfaceSection,
+			position = 2
+	)
+	default boolean confirmationMessages()
 	{
 		return true;
 	}

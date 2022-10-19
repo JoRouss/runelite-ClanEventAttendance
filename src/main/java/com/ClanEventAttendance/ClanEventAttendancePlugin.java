@@ -27,14 +27,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.ClanEventAttendance;
 
+import com.ClanEventAttendance.config.ClanChannelType;
+import com.ClanEventAttendance.config.OutputFormat;
 import com.google.inject.Provides;
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeMap;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.FriendsChatMember;
 import net.runelite.api.Player;
@@ -55,7 +55,6 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
-import net.runelite.client.util.ColorUtil;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.Text;
 import java.awt.image.BufferedImage;
@@ -64,7 +63,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @PluginDescriptor(
 	name = "Clan Event Attendance",
-	description = "Track clan event attendance and time spent at the event",
+	description = "Tracks clan attendance and time spent at events.",
 	tags = {"clan", "event", "attendance", "time"}
 )
 public class ClanEventAttendancePlugin extends Plugin
@@ -89,15 +88,15 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private String presentColorText;
 	private String absentColorText;
-	private final String defaultColorText = "#FFFFFF"; //white
 
 	private boolean CC_Valid;
 	private boolean FC_Valid;
 
 	private int ScanDelay;
 
-	private ArrayList<String> ClanMembers = new ArrayList<>();
+	private final ArrayList<String> ClanMembers = new ArrayList<>();
 
+	static final String CONFIG_GROUP = "ClanEventAttendance";
 
 	@Provides
 	ClanEventAttendanceConfig provideConfig(ConfigManager configManager)
@@ -117,7 +116,7 @@ public class ClanEventAttendancePlugin extends Plugin
 	}
 
 	@Override
-	protected void startUp() throws Exception
+	protected void startUp()
 	{
 		panel = injector.getInstance(ClanEventAttendancePanel.class);
 
@@ -136,8 +135,6 @@ public class ClanEventAttendancePlugin extends Plugin
 		eventRunning = false;
 
 		initConfig();
-
-		panel.init(config, this);
 	}
 
 	@Override
@@ -151,7 +148,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	public void startEvent()
 	{
-		log.info("startEvent");
+		//log.info("startEvent");
 
 		attendanceBuffer.clear();
 
@@ -166,7 +163,7 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	public void stopEvent()
 	{
-		log.info("stopEvent");
+		//log.info("stopEvent");
 
 		for (String key : attendanceBuffer.keySet())
 		{
@@ -188,10 +185,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (validateFC && FC_Valid && player.isFriendsChatMember())
 			return true;
 
-		if (validateCC && CC_Valid && ClanMembers.contains(nameToKey(player.getName())))
-			return true;
-
-		return false;
+		return validateCC && CC_Valid && ClanMembers.contains(nameToKey(player.getName()));
 	}
 
 	@Subscribe
@@ -207,6 +201,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final String playerName = player.getName();
 
+		//log.info("Player spawned: " + playerName);
+
 		addPlayer(player);
 		unpausePlayer(playerName);
 	}
@@ -220,6 +216,8 @@ public class ClanEventAttendancePlugin extends Plugin
 		final Player player = event.getPlayer();
 		final String playerName = player.getName();
 		final String playerKey = nameToKey(player.getName());
+
+		//log.info("Player despawned: " + playerName);
 
 		if (!attendanceBuffer.containsKey(playerKey))
 			return;
@@ -235,9 +233,13 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		if (event.getClanChannel() == null)
 		{
-			log.info("onClanChannelChanged, null");
+			//log.info("onClanChannelChanged, null");
 			return;
 		}
+		//else
+		//{
+		//	log.info("onClanChannelChanged, " + event.getClanChannel());
+		//}
 
 		ScanDelay = 1;
 	}
@@ -254,10 +256,13 @@ public class ClanEventAttendancePlugin extends Plugin
 		final ClanChannelMember member = event.getClanMember();
 		ClanMembers.add(nameToKey(member.getName()));
 
+		//log.info("Member joined: " + member.getName());
+
 		if (member.getWorld() != client.getWorld())
 			return;
 
 		final String memberName = member.getName();
+
 
 		for (final Player player : client.getPlayers())
 		{
@@ -288,6 +293,8 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		final ClanChannelMember member = event.getClanMember();
 		ClanMembers.remove(nameToKey(member.getName()));
+
+		//log.info("Member left: " + member.getName());
 
 		if (member.getWorld() != client.getWorld())
 			return;
@@ -394,6 +401,8 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (!attendanceBuffer.containsKey(playerKey))
 			return;
 
+		//log.info("Player paused: " + playerName);
+
 		MemberAttendance ma = attendanceBuffer.get(playerKey);
 		ma.isPresent = false;
 	}
@@ -406,6 +415,8 @@ public class ClanEventAttendancePlugin extends Plugin
 			return;
 
 		MemberAttendance ma = attendanceBuffer.get(playerKey);
+
+		//log.info("Player unpaused: " + playerName);
 
 		if (ma.isPresent)
 			return;
@@ -440,7 +451,11 @@ public class ClanEventAttendancePlugin extends Plugin
 		if (ScanDelay == 0)
 		{
 			ClanMembers.clear();
-			client.getClanChannel().getMembers().forEach(member -> ClanMembers.add(nameToKey(member.getName())));
+
+			if (client.getClanChannel() != null)
+			{
+				client.getClanChannel().getMembers().forEach(member -> ClanMembers.add(nameToKey(member.getName())));
+			}
 
 			for (final Player player : client.getPlayers())
 			{
@@ -451,10 +466,13 @@ public class ClanEventAttendancePlugin extends Plugin
 				unpausePlayer(player.getName());
 			}
 
-			log.info("Scanned " + attendanceBuffer.size() + " surrounding players");
+			//log.info("Scanned " + attendanceBuffer.size() + " surrounding players");
 		}
 
-		ScanDelay--;
+		if (ScanDelay >= 0)
+		{
+			--ScanDelay;
+		}
 
 		for (String key : attendanceBuffer.keySet())
 		{
@@ -468,7 +486,7 @@ public class ClanEventAttendancePlugin extends Plugin
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (event.getGroup().equals("ClanEventAttendance"))
+		if (event.getGroup().equals(CONFIG_GROUP))
 		{
 			initConfig();
 		}
@@ -476,24 +494,27 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private void initConfig()
 	{
-		log.info("initConfig");
+		//log.info("initConfig");
 
-		CC_Valid = config.filterType() == ClanChannelType.CLAN_CHAT || config.filterType() == ClanChannelType.BOTH;
-		FC_Valid = config.filterType() == ClanChannelType.FRIENDS_CHAT || config.filterType() == ClanChannelType.BOTH;
+		CC_Valid = config.filterType() == ClanChannelType.CLAN_CHAT || config.filterType() == ClanChannelType.BOTH_CHATS;
+		FC_Valid = config.filterType() == ClanChannelType.FRIENDS_CHAT || config.filterType() == ClanChannelType.BOTH_CHATS;
 
-		presentColorText = "#" + Integer.toHexString(config.getPresentColor().getRGB()).substring(2);
-		absentColorText = "#" + Integer.toHexString(config.getAbsentColor().getRGB()).substring(2);
+		presentColorText = "#" + Integer.toHexString(config.presentColor().getRGB()).substring(2);
+		absentColorText = "#" + Integer.toHexString(config.absentColor().getRGB()).substring(2);
 
 		if (!attendanceBuffer.isEmpty())
 		{
 			panel.setText(generateTextData(!eventRunning));
 		}
 
-		panel.updatePanel(config, this);
+		panel.removeAll();
+		panel.init(config, this);
 	}
 
 	private String generateTextData(boolean finalDisplay)
 	{
+		//log.info("generateTextData");
+
 		StringBuilder activeSB = new StringBuilder();
 		StringBuilder inactiveSB = new StringBuilder();
 
@@ -502,7 +523,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		{
 			MemberAttendance ma = attendanceBuffer.get(key);
 
-			if (ticksToSeconds(ma.ticksTotal) < config.getTimeThreshold())
+			if (ticksToSeconds(ma.ticksTotal) < config.presentThreshold())
 				inactiveSB.append(memberAttendanceToString(ma));
 			else
 				activeSB.append(memberAttendanceToString(ma));
@@ -513,24 +534,34 @@ public class ClanEventAttendancePlugin extends Plugin
 
 		if (finalDisplay)
 		{
-			attendanceString.append(config.getTextPrefix().replaceAll("(\r\n|\n\r|\r|\n)", "<br/>"));
-			attendanceString.append("<br/>");
+			if (!config.listPrefix().isEmpty())
+			{
+				attendanceString.append(config.listPrefix().replaceAll("(\r\n|\n\r|\r|\n)", "<br/>"));
+				attendanceString.append("<br/><br/>");
+			}
 		}
 
 		// ex: Event duration: 18:36
-		attendanceString.append("Event duration: ");
+		attendanceString.append("Event Duration: ");
 		final int durationTargetTick = eventRunning ? client.getTickCount() : eventStoppedAt;
 		attendanceString.append(timeFormat(ticksToSeconds(durationTargetTick - eventStartedAt)));
 		attendanceString.append("<br/><br/>");
 
-		if (finalDisplay && config.getDiscordMarkdown())
+		if (finalDisplay && config.discordMarkdown() && (config.outputFormat() == OutputFormat.TEXT))
 			attendanceString.append("```<br/>");
 
 		if(activeSB.length() > 0)
 		{
-			attendanceString.append("Part of the event<br/>");
+			attendanceString.append("Present Members<br/>");
 			attendanceString.append("------------------------------<br/>");
-			attendanceString.append(String.format("%-12s | %-6s | %-6s<br/>", "Name", "Time", "Late"));
+			if (config.lateMembers())
+			{
+				attendanceString.append(String.format("%-12s | %-6s | %-6s<br/>", "Name", "Time", "Late"));
+			}
+			else
+			{
+				attendanceString.append(String.format("%-12s | %-6s<br/>", "Name", "Time"));
+			}
 
 			attendanceString.append(activeSB);
 		}
@@ -542,24 +573,33 @@ public class ClanEventAttendancePlugin extends Plugin
 				attendanceString.append("<br/>");
 
 			// ex: Below time threshold (03:00)
-			attendanceString.append("Below time threshold (");
-			attendanceString.append(timeFormat(config.getTimeThreshold()));
+			attendanceString.append("Below Threshold (");
+			attendanceString.append(timeFormat(config.presentThreshold()));
 			attendanceString.append(")<br/>");
 
 			attendanceString.append("------------------------------<br/>");
-			attendanceString.append(String.format("%-12s | %-6s | %-6s<br/>", "Name", "Time", "Late"));
+			if (config.lateMembers())
+			{
+				attendanceString.append(String.format("%-12s | %-6s | %-6s<br/>", "Name", "Time", "Late"));
+			}
+			else
+			{
+				attendanceString.append(String.format("%-12s | %-6s<br/>", "Name", "Time"));
+			}
 
 			attendanceString.append(inactiveSB);
 		}
 
-		if (finalDisplay && config.getDiscordMarkdown())
+		if (finalDisplay && config.discordMarkdown() && (config.outputFormat() == OutputFormat.TEXT))
 			attendanceString.append("```");
 
 		if (finalDisplay)
 		{
-			attendanceString.append("<br/>");
-			attendanceString.append("<br/>");
-			attendanceString.append(config.getTextSuffix().replaceAll("(\r\n|\n\r|\r|\n)", "<br/>"));
+			if (!config.listSuffix().isEmpty())
+			{
+				attendanceString.append("<br/><br/>");
+				attendanceString.append(config.listSuffix().replaceAll("(\r\n|\n\r|\r|\n)", "<br/>"));
+			}
 		}
 
 		attendanceString.append("</pre></body></html>");
@@ -569,20 +609,40 @@ public class ClanEventAttendancePlugin extends Plugin
 
 	private String memberAttendanceToString(MemberAttendance ma)
 	{
-		boolean isLate = ticksToSeconds(ma.ticksLate) > config.getLateThreshold();
-		String lineColor = defaultColorText;
+		boolean isLate = ticksToSeconds(ma.ticksLate) > config.lateThreshold();
+		//white
+		String lineColor = "#FFFFFF";
+		String ret;
 
 		if(eventRunning)
 			lineColor = ma.isPresent ? presentColorText : absentColorText;
 
-		// ex: JoRouss      | 06:46  | 01:07  //   isLate
-		// ex: SomeDude     | 236:46 | -      //  !isLate
-		return String.format("%s%-12s | %-6s | %-6s%s<br/>",
-				"<font color='" + lineColor + "'>",
-				ma.member.getName(),
-				timeFormat(ticksToSeconds(ma.ticksTotal)),
-				isLate ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-",
-				"</font>");
+		// config.lateMembers()
+		// ex: JoRouss      | 06:46  | 01:07  // isLate
+		// ex: SomeDude     | 236:46 | -      // !isLate
+
+		// !config.lateMembers()
+		// ex: JoRouss      | 06:46
+
+		if (config.lateMembers())
+		{
+			ret = String.format("%s%-12s | %-6s | %-6s%s<br/>",
+					"<font color='" + lineColor + "'>",
+					ma.member.getName(),
+					timeFormat(ticksToSeconds(ma.ticksTotal)),
+					isLate ? timeFormat(ticksToSeconds(ma.ticksLate)) : "-",
+					"</font>");
+		}
+		else
+		{
+			ret = String.format("%s%-12s | %-6s%s<br/>",
+					"<font color='" + lineColor + "'>",
+					ma.member.getName(),
+					timeFormat(ticksToSeconds(ma.ticksTotal)),
+					"</font>");
+		}
+
+		return ret;
 	}
 
 	private String timeFormat(int totalSeconds)
@@ -603,12 +663,6 @@ public class ClanEventAttendancePlugin extends Plugin
 	private int ticksToSeconds(int ticks)
 	{
 		return (int)(ticks * 0.6f);
-	}
-
-	public void addChatMessage(String message)
-	{
-		message = ColorUtil.wrapWithColorTag(message, Color.RED);
-		client.addChatMessage(ChatMessageType.CONSOLE, "", message, null);
 	}
 
 	private String nameToKey(String playerName)
