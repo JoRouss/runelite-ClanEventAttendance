@@ -29,7 +29,7 @@ package com.ClanEventAttendance;
 
 import java.awt.Color;
 
-import com.ClanEventAttendance.config.ChatType;
+import com.ClanEventAttendance.config.ClanChannelType;
 import com.ClanEventAttendance.config.OutputFormat;
 import net.runelite.client.config.*;
 
@@ -37,18 +37,18 @@ import net.runelite.client.config.*;
 public interface ClanEventAttendanceConfig extends Config
 {
 	@ConfigSection(
-			name = "Timing Threshold",
-			description = "Timing threshold configurations.",
+			name = "General",
+			description = "General configurations.",
 			position = 1
 	)
-	String timingThresholdSection = "timingThreshold";
+	String generalSection = "general";
 
 	@ConfigSection(
-			name = "Attendance List",
-			description = "Attendance list configurations.",
+			name = "Data Export",
+			description = "How to export the data after the event is stopped.",
 			position = 2
 	)
-	String attendanceListSection = "attendanceList";
+	String dataExportSection = "dataExport";
 
 	@ConfigSection(
 			name = "User Interface",
@@ -57,12 +57,25 @@ public interface ClanEventAttendanceConfig extends Config
 	)
 	String userInterfaceSection = "userInterface";
 
+
+	@ConfigItem(
+		keyName = "filterType",
+		name = "Event Chat",
+		description = "The chat(s) an event is for.",
+		section = generalSection,
+		position = 0
+	)
+	default ClanChannelType filterType()
+	{
+		return ClanChannelType.CLAN_CHAT;
+	}
+
 	@ConfigItem(
 			keyName = "presentThreshold",
-			name = "Present Threshold",
-			description = "The amount of time a member must be present at an event.",
-			section = timingThresholdSection,
-			position = 0
+			name = "Time Threshold",
+			description = "The required time for a member to be consider part of the event expressed in seconds.",
+			section = generalSection,
+			position = 1
 	)
 	@Units(Units.SECONDS)
 	default int presentThreshold()
@@ -72,22 +85,22 @@ public interface ClanEventAttendanceConfig extends Config
 
 	@ConfigItem(
 			keyName = "lateMembers",
-			name = "Late Members",
+			name = "Include Late Members",
 			description = "Enables keeping track of members who are late to an event.",
-			section = timingThresholdSection,
-			position = 1
+			section = generalSection,
+			position = 2
 	)
 	default boolean lateMembers()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
 			keyName = "lateThreshold",
 			name = "Late Threshold",
-			description = "The amount of time for a member to be consider late to an event.",
-			section = timingThresholdSection,
-			position = 2
+			description = "The required time for a member to be consider late expressed in seconds.",
+			section = generalSection,
+			position = 3
 	)
 	@Units(Units.SECONDS)
 	default int lateThreshold()
@@ -96,71 +109,59 @@ public interface ClanEventAttendanceConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "eventChat",
-			name = "Event Chat",
-			description = "The chat(s) an event is for.",
-			section = attendanceListSection,
-			position = 0
-	)
-	default ChatType eventChat()
-	{
-		return ChatType.CLAN_CHAT;
-	}
-
-	@ConfigItem(
 			keyName = "outputFormat",
 			name = "Output Format",
 			description = "What gets output to the user's clipboard when the copy button is pressed.",
-			section = attendanceListSection,
+			section = dataExportSection,
 			position = 1
 	)
 	default OutputFormat outputFormat()
 	{
-		return OutputFormat.PNG;
+		return OutputFormat.TEXT;
 	}
 
 	@ConfigItem(
 			keyName = "discordMarkdown",
 			name = "Discord Code Block",
-			description = "Surrounds text attendance lists in a Discord multi-line code block.",
-			section = attendanceListSection,
+			description = "Surrounds text attendance lists with a Discord multi-line code block.",
+			section = dataExportSection,
 			position = 2
 	)
 	default boolean discordMarkdown()
 	{
-		return false;
+		return true;
 	}
 
 	@ConfigItem(
-			keyName = "listPrefix",
+			keyName = "textPrefix",
 			name = "List Prefix",
 			description = "Text that gets added as a prefix to attendance lists.",
-			section = attendanceListSection,
+			section = dataExportSection,
 			position = 3
 	)
 	default String listPrefix()
 	{
-		return "";
+		return "Event name: \nHosted by: ";
 	}
 
 	@ConfigItem(
-			keyName = "listSuffix",
+			keyName = "textSuffix",
 			name = "List Suffix",
 			description = "Text that gets added as a suffix to attendance lists.",
-			section = attendanceListSection,
+			section = dataExportSection,
 			position = 4
 	)
 	default String listSuffix()
 	{
-		return "";
+		return "Thanks for coming!";
 	}
 
 	@ConfigItem(
 			keyName = "presentColor",
 			name = "Present Color",
 			description = "The color used for present members in attendance lists.",
-			section = attendanceListSection,
-			position = 5
+			section = userInterfaceSection,
+			position = 0
 	)
 	default Color presentColor()
 	{
@@ -171,8 +172,8 @@ public interface ClanEventAttendanceConfig extends Config
 			keyName = "absentColor",
 			name = "Absent Color",
 			description = "The color used for absent members in attendance lists.",
-			section = attendanceListSection,
-			position = 6
+			section = userInterfaceSection,
+			position = 1
 	)
 	default Color absentColor()
 	{
@@ -180,11 +181,11 @@ public interface ClanEventAttendanceConfig extends Config
 	}
 
 	@ConfigItem(
-			keyName = "blockCopyButton",
+			keyName = "blockCopyButtons",
 			name = "Block Copy Button",
 			description = "Blocks the copy button while an event is in progress.",
 			section = userInterfaceSection,
-			position = 0
+			position = 2
 	)
 	default boolean blockCopyButton()
 	{
@@ -212,6 +213,6 @@ public interface ClanEventAttendanceConfig extends Config
 	)
 	default boolean confirmationMessages()
 	{
-		return false;
+		return true;
 	}
 }

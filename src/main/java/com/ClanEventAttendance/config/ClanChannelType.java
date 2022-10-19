@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum ChatType
+public enum ClanChannelType
 {
 	FRIENDS_CHAT("Friends Chat", 0),
 	CLAN_CHAT("Clan Chat", 1),

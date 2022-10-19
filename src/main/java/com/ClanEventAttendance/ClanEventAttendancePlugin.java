@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.ClanEventAttendance;
 
-import com.ClanEventAttendance.config.ChatType;
+import com.ClanEventAttendance.config.ClanChannelType;
 import com.ClanEventAttendance.config.OutputFormat;
 import com.google.inject.Provides;
 import java.util.ArrayList;
@@ -44,6 +44,7 @@ import net.runelite.api.events.ClanMemberJoined;
 import net.runelite.api.events.ClanMemberLeft;
 import net.runelite.api.events.FriendsChatMemberJoined;
 import net.runelite.api.events.FriendsChatMemberLeft;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.PlayerDespawned;
 import net.runelite.api.events.PlayerSpawned;
@@ -103,6 +104,17 @@ public class ClanEventAttendancePlugin extends Plugin
 		return configManager.getConfig(ClanEventAttendanceConfig.class);
 	}
 
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		switch (event.getGameState())
+		{
+			case HOPPING:
+			case LOGGING_IN:
+				ScanDelay = 1;
+		}
+	}
+
 	@Override
 	protected void startUp()
 	{
@@ -113,7 +125,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		navButton = NavigationButton.builder()
 				.tooltip("Clan Event Attendance")
 				.icon(icon)
-				.priority(5)
+				.priority(20)
 				.panel(panel)
 				.build();
 
@@ -143,7 +155,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		eventStartedAt = client.getTickCount();
 		eventRunning = true;
 
-		ScanDelay = 0;
+		ScanDelay = 1;
 
 		panel.updatePanel(config, this);
 		panel.setText("");
@@ -229,7 +241,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		//	log.info("onClanChannelChanged, " + event.getClanChannel());
 		//}
 
-		ScanDelay = 0;
+		ScanDelay = 1;
 	}
 
 	@Subscribe
@@ -484,8 +496,8 @@ public class ClanEventAttendancePlugin extends Plugin
 	{
 		//log.info("initConfig");
 
-		CC_Valid = config.eventChat() == ChatType.CLAN_CHAT || config.eventChat() == ChatType.BOTH_CHATS;
-		FC_Valid = config.eventChat() == ChatType.FRIENDS_CHAT || config.eventChat() == ChatType.BOTH_CHATS;
+		CC_Valid = config.filterType() == ClanChannelType.CLAN_CHAT || config.filterType() == ClanChannelType.BOTH_CHATS;
+		FC_Valid = config.filterType() == ClanChannelType.FRIENDS_CHAT || config.filterType() == ClanChannelType.BOTH_CHATS;
 
 		presentColorText = "#" + Integer.toHexString(config.presentColor().getRGB()).substring(2);
 		absentColorText = "#" + Integer.toHexString(config.absentColor().getRGB()).substring(2);
@@ -585,7 +597,7 @@ public class ClanEventAttendancePlugin extends Plugin
 		{
 			if (!config.listSuffix().isEmpty())
 			{
-				attendanceString.append("<br/>");
+				attendanceString.append("<br/><br/>");
 				attendanceString.append(config.listSuffix().replaceAll("(\r\n|\n\r|\r|\n)", "<br/>"));
 			}
 		}
